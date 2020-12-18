@@ -1,0 +1,8 @@
+{
+    "deno.enable": true,
+    "deno.enabled": true,
+    "deno.unstable": false,
+    "deno.import_intellisense_origins": {
+      "https://deno.land": true,
+    },
+}
