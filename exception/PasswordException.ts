@@ -1,15 +1,24 @@
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
+import { hash, compare } from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 
-export default class EmailException extends Error {
+export default class PasswordException extends Error {
+
+    private static SALT_ROUNDS: number = 10;
+    private static MIN_PASS_SIZE: number = 6;
 
     constructor() {
-        super('password is not valid')
+        super('Password is not valid')
     }
-static hash = async(password: string):Promise<string>=>{
-    return await bcrypt.hash(password);
-}
 
-static comparePass = async(password: string, hash: string):Promise<boolean> =>{
-    return await bcrypt.compare(password, hash);
-}
+    public static isValidPassword(password: string): boolean {
+        return password.length >= this.MIN_PASS_SIZE;
+    }
+
+    public static async hashPassword(password: string): Promise < string > {
+        return await hash(password)
+    }
+
+    public static async comparePassword(password: string, hash: string): Promise < boolean > {
+        return await compare(password, hash)
+    }
+
 }

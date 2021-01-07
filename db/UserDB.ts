@@ -4,7 +4,7 @@ import { userUpdateTypes } from "../types/userUpdateTypes.ts";
 
 export class UserDB{
 
-    protected userdb: any;
+    public userdb: any;
     constructor(){
         this.userdb = db.collection<UserInterfaces>("users");
     }
