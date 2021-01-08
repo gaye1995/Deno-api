@@ -11,7 +11,7 @@ import { roleTypes } from "../types/rolesTypes.ts";
 export class UsersControllers extends UserDB {
 
     
-    static login = async(req: expressive.Request, res: expressive.Response) => {
+    static login = async(req: any, res: any) => {
 
       
         let {data}: any = req.body ;

@@ -3,8 +3,6 @@ import {UsersControllers} from '../controllers/UsersControllers.ts';
 
 const router = new Router();
 
-router.post("/login", async(ctx) => {
- UsersControllers.login
-});
+router.post("/login",UsersControllers.login);
 
   export { router }
