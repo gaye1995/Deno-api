@@ -1,4 +1,4 @@
-import { UserDB } from '../db/userDB.ts';
+import { UserDB } from './../db/UserDB.ts';
 import type { roleTypes } from '../types/rolesTypes.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';

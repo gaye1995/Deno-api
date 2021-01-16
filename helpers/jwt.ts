@@ -28,7 +28,7 @@ const getAuthToken = async (user: any) => {
 const getRefreshToken = async(user: any) => {
     const payload: any = {
         iss: "deno-imie-api",
-        id: user.id,
+        email: user.email,
         exp: getNumericDate(new Date().getTime() + parseInt(JWT_REFRESH_TOKEN_EXP)),
     };
 
