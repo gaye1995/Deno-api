@@ -45,8 +45,7 @@ export class UsersControllers {
                 'refresh_token': jwt.getRefreshToken(user),
             };
             c.response.status = 200;
-            return { error: false, message: "l'utilisateur a été authentifieé succés", user
-             };
+            return { error: false, message: "l'utilisateur a été authentifiée succés", user};
             }
         } catch (err) {
             c.response.status = 401;
