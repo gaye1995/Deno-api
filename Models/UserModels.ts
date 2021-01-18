@@ -9,10 +9,10 @@ export class UserModels extends UserDB implements UserInterfaces {
     private _role: roleTypes = "Tuteur";
 
     email: string;
-    dateNaiss: Date;
     password: string;
     lastname: string;
     firstname: string;
+    dateNaiss: Date;
     phoneNumber ? : string;
 
     constructor(email: string, password: string, nom: string, prenom: string, tel: string, dateNaiss: string) {

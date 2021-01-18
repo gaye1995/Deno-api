@@ -3,9 +3,9 @@ import { UsersControllers } from '../controllers/UsersControllers.ts';
 
 
 const router = new Router();
-
-router.add('get', '/', UsersControllers.test);
+router.add('post', '/register', UsersControllers.register);
 router.add('post', '/login', UsersControllers.login);
+router.add('put', '/user', UsersControllers.modifuser);
 
 /*import { Router } from "https://deno.land/x/oak/mod.ts";
 import {UsersControllers} from '../controllers/UsersControllers.ts';

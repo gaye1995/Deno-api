@@ -2,14 +2,11 @@ import { Application } from 'https://deno.land/x/abc@v1.2.4/mod.ts';
 // import { Router } from 'https://deno.land/x/oak@v5.0.0/router.ts';
 import { router } from './Routes/authroute.ts';
 import { UserModels } from "./Models/UserModels.ts";
+import { UsersControllers } from './controllers/UsersControllers.ts';
 
 const app = new Application();
 
 const port = 8000;
-// route with dynamic parameter
-let user = new UserModels('joijoi','joijoi','joijoi','joijoi','joijoi',"1993-11-22")
-user.insert();
-console.log(user);
 // app.use(router.routes());
 app.router = router;
 // deno run --allow-net --allow-read --unstable server.ts
