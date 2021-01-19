@@ -7,22 +7,26 @@ import type { userUpdateTypes } from '../types/userUpdateTypes.ts';
 export class UserModels extends UserDB implements UserInterfaces {
 
     private _role: roleTypes = "Tuteur";
-
     email: string;
     password: string;
     lastname: string;
     firstname: string;
     dateNaiss: Date;
+    sexe: string;
     phoneNumber ? : string;
+    subscription: boolean ;
 
-    constructor(email: string, password: string, nom: string, prenom: string, tel: string, dateNaiss: string) {
+    constructor(email: string, password: string, nom: string, prenom: string, tel: string, dateNaiss: string,sexe:string, subscription:boolean) {
         super();
         this.email = email;
-        this.lastname = nom;
-        this.phoneNumber = tel;
-        this.firstname = prenom;
         this.password = password;
+        this.lastname = nom;
+        this.firstname = prenom;
         this.dateNaiss = new Date(dateNaiss);
+        this.sexe = sexe;
+        this.phoneNumber = tel;
+        this.subscription = false;
+
     }
 
     
@@ -52,7 +56,10 @@ export class UserModels extends UserDB implements UserInterfaces {
             lastname: this.lastname,
             firstname: this.firstname,
             dateNaiss: this.dateNaiss,
+            sexe: this.sexe,
             phoneNumber: this.phoneNumber,
+            subscription: this.subscription ,
+
         });
     }
     async update(update: userUpdateTypes) {

@@ -1,6 +1,6 @@
 import { db } from './db.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
-import { userUpdateTypes } from "../types/userUpdateTypes.ts";
+import { userUpdateTypes,SubscriptionUpdateTypes } from "../types/userUpdateTypes.ts";
 
 export class UserDB{
 
@@ -13,6 +13,9 @@ export class UserDB{
         throw new Error('Method not implemented.');
     }
     update(update:userUpdateTypes): Promise < any > {
+        throw new Error('Method not implemented.');
+    }
+    updateSubscription(updateSubscription:SubscriptionUpdateTypes): Promise < any > {
         throw new Error('Method not implemented.');
     }
     delete(): Promise < any > {

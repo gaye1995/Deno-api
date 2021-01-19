@@ -21,10 +21,7 @@ export class UsersControllers {
         let userdb = _userdb.userdb;
 
         const data : any = await c.body;
-        
-
-        console.log(data);
-        try {
+                try {
             const user: any = await userdb.findOne({ email: data.email })
             if(user){
                 c.response.body = "existe";
@@ -37,8 +34,10 @@ export class UsersControllers {
                     pass,
                     data.lastname,
                     data.firstname,
-                    data.role,
+                    data.dateNaiss,
+                    data.sexe,
                     data.phoneNumber,
+                    data.subscription,
                 );
                 await User.insert();
             const token = {
@@ -63,30 +62,33 @@ export class UsersControllers {
 
         try {
             const user: any = await userdb.findOne({ email: data.email })
-            if(data == undefined)
-            {
-                return { error: false, message: 'Une ou plusieurs données obligatoire sont manquantes' };
-            }
-            if(EmailException.checkEmail(data.email) || PasswordException.isValidPassword(data.password)){
-                return { error: false, message: 'Une ou plusieurs données obligatoire sont erronées' };
-            }
-            else if(!user){
+            if(!user){
                 c.response.status = 400;
                 return { error: false, message: 'Email/password incorrect' };
+            }
+            else if(data == undefined)
+            {
+                return { error: false, message: 'Une ou plusieurs données obligatoire sont manquantes' };
             }
             else if(PasswordException.comparePassword(data.password, user.password ))
             {
                 c.response.status = 400;
                 return { error: false, message: 'Email/password incorrect' };
             }else {
-            
-            const token = {
+                console.log(user);
+           /*const token = {
                 'access_token': jwt.getAuthToken(user),
                 'refresh_token': jwt.getRefreshToken(user),
-            };
+            };*/
             c.response.status = 200;
-            return { error: false, message: "l'utilisateur a bien été créé avec succés",data, token};
+            let subs = data.subscription = true;
+            return { 
+                error: false,
+                message: "l'utilisateur a bien été créé avec succés",
+                user,
+                subs,
             }
+        }
         } catch (err) {
             c.response.status = 401;
             return { error: true, message: err.message };
@@ -110,34 +112,13 @@ export class UsersControllers {
     }
     static deleteuser: HandlerFunc = async(c: Context) => {
 
-       // c.cookies.delete();
-        //c.response.redirect('/');
+      
+    } 
+    static subscription: HandlerFunc = async(c: Context) => {
+        let _userdb: UserDB = new UserDB();
+        let userdb = _userdb.userdb;
+      
     }
+    
 }
 
-/*import  {UserDB}  from './../db/UserDB.ts';
-import * as jwt from '../helpers/jwt.ts';
-export class UsersControllers extends UserDB {
-    constructor()
-    {
-        super();
-    }
-    static login = async(req: any, res: any) => {  
-    let {data}: any = req.body ;
-     try {
-         const user = await userdb.findOne({ email: data.email })
-         if (!user){
-             res.status = 401;
-             return res.json({ error: true, message: 'login error' });
-         }const token = {
-             "access_token": jwt.getAuthToken(user),
-             "refresh_token": jwt.getRefreshToken(user),
-         }
-         res.status = 200;
-         return res.json(token);
-     } catch (err) {
-         res.status = 401;
-         return res.json({ error: true, message: err.message });
-     }
-}
-}*/

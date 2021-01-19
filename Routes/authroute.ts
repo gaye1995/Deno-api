@@ -6,12 +6,9 @@ import { UsersControllers } from '../controllers/UsersControllers.ts';
 
 const router = new Router();
 router.add(HttpMethod.Post, '/register', UsersControllers.register);
-router.add('post', '/login', UsersControllers.login);
-router.add('put', '/user', UsersControllers.modifuser);
-router.add(HttpMethod.Get, '/user',(c:Context)=>{
-  c.response.body = 'b';
-  console.log('moi meme');
-});
+router.add(HttpMethod.Post, '/login', UsersControllers.login);
+router.add(HttpMethod.Post, '/user', UsersControllers.modifuser);
+router.add(HttpMethod.Put, '/user',UsersControllers.subscription)
 
 /*import { Router } from "https://deno.land/x/oak/mod.ts";
 import {UsersControllers} from '../controllers/UsersControllers.ts';

@@ -7,3 +7,7 @@ export type userUpdateTypes =
 
     role?: roleTypes,
 }
+export type SubscriptionUpdateTypes = 
+{
+    subscription?: boolean,
+}
