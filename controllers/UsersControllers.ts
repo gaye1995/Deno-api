@@ -8,10 +8,10 @@ import { roleTypes } from '../types/rolesTypes.ts';
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
 import { Context } from 'https://deno.land/x/abc@v1.2.4/context.ts';
 import PasswordException from '../exception/PasswordException.ts';
-
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 
 export class UsersControllers {
-
+    // Route 1 => /Inscription
     static register: HandlerFunc = async(c: Context) => {
 
         let _userdb: UserDB = new UserDB();
@@ -46,7 +46,7 @@ export class UsersControllers {
             return { error: true, message: err.message };
         }
     }
-
+    // Route 2 => /login (route d'authentifiaction d'un utilisateur)
     static login: HandlerFunc = async(c: Context) => {
 
         let _userdb: UserDB = new UserDB();
@@ -82,23 +82,60 @@ export class UsersControllers {
             return { error: true, message: err.message };
         }
     }
+    // Route 5 => /user ( route de modification d'un utilisateur)
     static modifuser: HandlerFunc = async(c: Context) => {
 
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
 
-        let { data }: any = c.body;
+        let { firstname, lastnamme, date_naissance, sexe, email, oldPassword, newPassword }: any = c.body;
 
         try {
+            if (!firstname || !lastnamme || !date_naissance || !sexe || !email || !oldPassword || !newPassword) {
+                c.response.status = 409;
+                return { error: false, message: 'Une ou plusieurs données sont éronnés' };
+            }
+            const isPasswordMatch = await bcrypt.compare(oldPassword, userdb.password);
+            if (!isPasswordMatch){ 
+                c.response.status = 409;
+                return { error: false, message: "Email/password incorrect" };
+            }
+            if (email !== userdb.email) throw { success: false, message: "Email is wrong" };
 
-            
+            userdb.password = newPassword;
+            await userdb.save();
+
+            c.response.status = 200;
+            return { error: true, message: "Vos données ont été mises à jours" };
 
         }catch (err) {
             c.response.status = 401;
-            return { error: true, message: err.message };
+            return { error: true, message: "Votre token n'est pas correct" };
         }
     }
-    // Route 8 => Delete new child user
+    // Route 6 => Disconnect user (deconnexion d'un utilisateur)
+    static disconnectUser: HandlerFunc = async(c: Context) => {
+        let _userdb: UserDB = new UserDB();
+        let userdb = _userdb.userdb;
+        let { data }: any = c.request.body;
+        try{
+            const user: any = await userdb.findOne({ email: data.email })
+            const token = await user.generateAuthToken();
+            const refresh_token = await user.generateAuthRefreshToken();
+            user.token = undefined;
+            user.refresh_token = undefined;
+
+            await user.save();
+            c.response.status = 200;
+            return { error: false, message: "L'utilisateur a été déconnecté avec succés"};
+        }
+        catch (err) {
+            c.response.status = 401;
+            return { error: true, message: "Votre token n'est pas correct" };
+        }
+    
+    }
+    // Route 8 => Delete new child user (suppression d'un nouvel utilisateur enfant)
     static deleteUserChild: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
@@ -120,6 +157,7 @@ export class UsersControllers {
             return { error: true, message: "Votre token n\'est pas correct" };
         }
     }  
+
 
 }
 

@@ -7,6 +7,7 @@ router.add('post', '/register', UsersControllers.register);
 router.add('post', '/login', UsersControllers.login);
 router.add('put', '/user', UsersControllers.modifuser);
 router.add('delete', '/user/delete', UsersControllers.deleteUserChild);
+router.add('delete', '/user/off', UsersControllers.disconnectUser);
 /*import { Router } from "https://deno.land/x/oak/mod.ts";
 import {UsersControllers} from '../controllers/UsersControllers.ts';
 
