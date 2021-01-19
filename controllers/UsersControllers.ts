@@ -120,6 +120,28 @@ export class UsersControllers {
             return { error: true, message: "Votre token n\'est pas correct" };
         }
     }  
+      // Route 6 => Disconnect user (deconnexion d'un utilisateur)
+      static disconnectUser: HandlerFunc = async(c: Context) => {
+        let _userdb: UserDB = new UserDB();
+        let userdb = _userdb.userdb;
+        let { data }: any = c.request.body;
+        try{
+            const user: any = await userdb.findOne({ email: data.email })
+            const token = await jwt.getAuthToken(user);
+            const refresh_token = await jwt.getRefreshToken(user);
+            user.token = undefined;
+            user.refresh_token = undefined;
+
+            await userdb.insert();
+            c.response.status = 200;
+            return { error: false, message: "L'utilisateur a été déconnecté avec succés"};
+        }
+        catch (err) {
+            c.response.status = 401;
+            return { error: true, message: "Votre token n'est pas correct" };
+        }
+    
+    }
 
 }
 
