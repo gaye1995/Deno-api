@@ -1,9 +1,7 @@
 
 import { UserDB } from './../db/UserDB.ts';
-import * as expressive from 'https://raw.githubusercontent.com/NMathar/deno-express/master/mod.ts';
 import * as jwt from '../helpers/jwt.ts';
 import { UserModels } from '../Models/UserModels.ts';
-import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { roleTypes } from '../types/rolesTypes.ts';
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
 import { Context } from 'https://deno.land/x/abc@v1.2.4/context.ts';
@@ -59,6 +57,7 @@ export class UsersControllers {
         let userdb = _userdb.userdb;
 
         let data : any = await c.body;
+        console.log(data);
 
         try {
             const user: any = await userdb.findOne({ email: data.email })
@@ -76,10 +75,10 @@ export class UsersControllers {
                 return { error: false, message: 'Email/password incorrect' };
             }else {
                 console.log(user);
-           /*const token = {
-                'access_token': jwt.getAuthToken(user),
+           const token = {
                 'refresh_token': jwt.getRefreshToken(user),
-            };*/
+            };
+            console.log(data);
             c.response.status = 200;
             let subs = data.subscription = true;
             return { 
