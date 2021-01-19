@@ -12,7 +12,6 @@ import PasswordException from '../exception/PasswordException.ts';
 
 export class UsersControllers {
 
-
     static register: HandlerFunc = async(c: Context) => {
 
         let _userdb: UserDB = new UserDB();
@@ -99,6 +98,29 @@ export class UsersControllers {
             return { error: true, message: err.message };
         }
     }
+    // Route 8 => Delete new child user
+    static deleteUserChild: HandlerFunc = async(c: Context) => {
+        let _userdb: UserDB = new UserDB();
+        let userdb = _userdb.userdb;
+
+        let { email }: any = c.request.body;
+        try{
+            if(!userdb || !userdb.id || !email){
+                c.response.status = 403;
+                return { error: false, message: 'Votre droits d\'accès  ne permettent  pas d\'accèder à la ressource' };
+            }
+            const user = await userdb.deleteOne({email: email.email}); 
+            await userdb.deleteOne(user);
+            c.response.status = 200;
+            return { error: false, message: "l'utilisateur a bien été supprimé avec succés"};
+        
+        }
+        catch (err) {
+            c.response.status = 401;
+            return { error: true, message: "Votre token n\'est pas correct" };
+        }
+    }  
+
 }
 
 /*import  {UserDB}  from './../db/UserDB.ts';
