@@ -95,15 +95,14 @@ export class UsersControllers {
                 c.response.status = 409;
                 return { error: false, message: 'Une ou plusieurs données sont éronnés' };
             }
-            const isPasswordMatch = await bcrypt.compare(oldPassword, userdb.password);
-            if (!isPasswordMatch){ 
+            const pass = await PasswordException.comparePassword(oldPassword, userdb.password);
+          
+            if (!pass){ 
                 c.response.status = 409;
                 return { error: false, message: "Email/password incorrect" };
             }
-            if (email !== userdb.email) throw { success: false, message: "Email is wrong" };
-
             userdb.password = newPassword;
-            await userdb.save();
+            await userdb.insert();
 
             c.response.status = 200;
             return { error: true, message: "Vos données ont été mises à jours" };
