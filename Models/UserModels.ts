@@ -56,10 +56,10 @@ export class UserModels extends UserDB implements UserInterfaces {
         });
     }
     async update(update: userUpdateTypes) {
-        // const { modifiedCount } = await this.userdb.updateOne(
-        //     { _id: this.id },
-        //     { $set: update }
-        //   );
+        const { modifiedCount } = await this.userdb.updateOne(
+            { email: this.email },
+            { $set: update }
+          );
     }
     delete(): Promise < any > {
         throw new Error('Method not implemented.');

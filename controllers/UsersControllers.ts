@@ -8,6 +8,8 @@ import { roleTypes } from '../types/rolesTypes.ts';
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
 import { Context } from 'https://deno.land/x/abc@v1.2.4/context.ts';
 import PasswordException from '../exception/PasswordException.ts';
+import EmailException from '../exception/EmailException.ts';
+import { Get } from "https://deno.land/x/abc@v1.2.4/_http_method.ts";
 
 
 export class UsersControllers {
@@ -18,10 +20,14 @@ export class UsersControllers {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
 
-        let { data }: any = c.request.body;
+        const data : any = await c.body;
+        
+
+        console.log(data);
         try {
             const user: any = await userdb.findOne({ email: data.email })
             if(user){
+                c.response.body = "existe";
                 c.response.status = 409;
                 return { error: false, message: 'Email/password incorrect' };
             }else{
@@ -40,7 +46,7 @@ export class UsersControllers {
                 'refresh_token': jwt.getRefreshToken(user),
             };
             c.response.status = 200;
-            return { error: false, message: "l'utilisateur a été authentifiée succés", user};
+            return { error: false, message: "l'utilisateur a été authentifiée succés", data,token};
             }
         } catch (err) {
             c.response.status = 401;
@@ -53,7 +59,7 @@ export class UsersControllers {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
 
-        let { data }: any = c.body;
+        let data : any = await c.body;
 
         try {
             const user: any = await userdb.findOne({ email: data.email })
@@ -61,10 +67,14 @@ export class UsersControllers {
             {
                 return { error: false, message: 'Une ou plusieurs données obligatoire sont manquantes' };
             }
+            if(EmailException.checkEmail(data.email) || PasswordException.isValidPassword(data.password)){
+                return { error: false, message: 'Une ou plusieurs données obligatoire sont erronées' };
+            }
             else if(!user){
                 c.response.status = 400;
                 return { error: false, message: 'Email/password incorrect' };
-            }else if(PasswordException.comparePassword(data.password, user.password ))
+            }
+            else if(PasswordException.comparePassword(data.password, user.password ))
             {
                 c.response.status = 400;
                 return { error: false, message: 'Email/password incorrect' };
@@ -75,8 +85,7 @@ export class UsersControllers {
                 'refresh_token': jwt.getRefreshToken(user),
             };
             c.response.status = 200;
-            return { error: false, message: "l'utilisateur a bien été créé avec succés",user
-            };
+            return { error: false, message: "l'utilisateur a bien été créé avec succés",data, token};
             }
         } catch (err) {
             c.response.status = 401;
@@ -98,6 +107,11 @@ export class UsersControllers {
             c.response.status = 401;
             return { error: true, message: err.message };
         }
+    }
+    static deleteuser: HandlerFunc = async(c: Context) => {
+
+       // c.cookies.delete();
+        //c.response.redirect('/');
     }
 }
 
