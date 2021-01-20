@@ -9,6 +9,7 @@ import PasswordException from '../exception/PasswordException.ts';
 import EmailException from '../exception/EmailException.ts';
 import { Get } from "https://deno.land/x/abc@v1.2.4/_http_method.ts";
 import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
+import {SubscriptionModels} from '../Models/SubscriptionModels.ts'
 
 
 export class UsersControllers {
@@ -77,7 +78,7 @@ export class UsersControllers {
             'access_token': await jwt.getAuthToken(user),
             'refresh_token': await jwt.getRefreshToken(user),
             };
-            console.log(token);
+            await SubscriptionModels;
             c.response.status = 200;
             return c.json({ error: false, message: "l'utilisateur a bien été créé avec succés", user, token });
         }
@@ -95,6 +96,9 @@ export class UsersControllers {
       
     } 
     static subscription: HandlerFunc = async(c: Context) => {
+        const authorization: any = c.request.headers.get("authorization");
+        const email = c.params.email;
+
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
       

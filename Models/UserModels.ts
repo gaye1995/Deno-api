@@ -14,7 +14,7 @@ export class UserModels extends UserDB implements UserInterfaces {
     dateNaiss: Date;
     sexe: string;
     phoneNumber ? : string;
-    subscription: boolean ;
+    subscription: number ;
 
     constructor(email: string, password: string, nom: string, prenom: string, tel: string, dateNaiss: string,sexe:string, subscription:boolean) {
         super();
@@ -25,7 +25,7 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.dateNaiss = new Date(dateNaiss);
         this.sexe = sexe;
         this.phoneNumber = tel;
-        this.subscription = false;
+        this.subscription = 0;
 
     }
 

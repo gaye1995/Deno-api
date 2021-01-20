@@ -1,4 +1,5 @@
 import { roleTypes } from './rolesTypes.ts';
+import {subscriptionTypes} from './rolesTypes.ts'
 export type userUpdateTypes = 
 {
     password?: string,
@@ -9,5 +10,5 @@ export type userUpdateTypes =
 }
 export type SubscriptionUpdateTypes = 
 {
-    subscription?: boolean,
+    subscription?: subscriptionTypes,
 }

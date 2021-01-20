@@ -3,6 +3,7 @@ import type { roleTypes } from '../types/rolesTypes.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import type { SubscriptionUpdateTypes } from '../types/userUpdateTypes.ts';
+import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
 
 export class SubscriptionModels extends UserDB {
 
@@ -25,6 +26,8 @@ export class SubscriptionModels extends UserDB {
             { id: this.id },
             { $set: subscription }
           );
+          if(modifiedCount) return subscription;
+          return console.log('subscription: 0')
     }
     delete(): Promise < any > {
         throw new Error('Method not implemented.');

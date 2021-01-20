@@ -5,6 +5,7 @@ import { userUpdateTypes,SubscriptionUpdateTypes } from "../types/userUpdateType
 export class UserDB{
 
     public userdb: any;
+    
     constructor(){
         this.userdb = db.collection<UserInterfaces>("users");
     }
