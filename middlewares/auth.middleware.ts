@@ -15,8 +15,8 @@ export const TokenMidd: MiddlewareFunc = (next) => async (data)=>{
         if(!getAuthToken){
             throw new Error();
         }
-        const isValidToken= await getJwtPayload(HeaderToken)
-            if(isValidToken) throw new Error();
+       // const isValidToken= await getJwtPayload(HeaderToken)
+           // if(isValidToken) throw new Error();
             
     }
     await next(data);

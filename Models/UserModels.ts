@@ -2,7 +2,7 @@ import { UserDB } from './../db/UserDB.ts';
 import type { roleTypes } from '../types/rolesTypes.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
-import type { userUpdateTypes } from '../types/userUpdateTypes.ts';
+import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
 
 export class UserModels extends UserDB implements UserInterfaces {
 
@@ -67,6 +67,14 @@ export class UserModels extends UserDB implements UserInterfaces {
             { email: this.email },
             { $set: update }
           );
+    }
+    async updateSubscription(subscription:SubscriptionUpdateTypes) {
+        const { modifiedCount } = await this.userdb.updateOne(
+            { email: this.email },
+            { $set: {subscription: 1} }
+          );
+          if(modifiedCount) return subscription;
+          return console.log('subscription: 0')
     }
     delete(): Promise < any > {
         throw new Error('Method not implemented.');

@@ -36,11 +36,12 @@ const getRefreshToken = async(user: any) => {
 const getJwtPayload = async(token: string): Promise < any | null > => {
     try {
         const jwtObject = await verify(token, JWT_TOKEN_SECRET, header.alg);
-        if (jwtObject && jwtObject.payload) {
-            return jwtObject.payload;
+        if (jwtObject) {
+            return jwtObject;
         }
     } catch (err) {}
     return null;
 };
 
-export { getAuthToken, getRefreshToken, getJwtPayload };
+
+export { getAuthToken, getRefreshToken, getJwtPayload , };

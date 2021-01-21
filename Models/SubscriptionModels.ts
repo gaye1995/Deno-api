@@ -9,11 +9,11 @@ export class SubscriptionModels extends UserDB {
 
     private id: { $oid: string } | null = null;
 
-    subscription: boolean ;
+    subscription: number ;
 
-    constructor(subscription: boolean) {
+    constructor() {
         super();
-        this.subscription = subscription;
+        this.subscription = 0;
 
     }
 
