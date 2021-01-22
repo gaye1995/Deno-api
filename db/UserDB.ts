@@ -5,9 +5,12 @@ import { userUpdateTypes,SubscriptionUpdateTypes } from "../types/userUpdateType
 export class UserDB{
 
     public userdb: any;
+    public userenfant: any;
+
     
     constructor(){
         this.userdb = db.collection<UserInterfaces>("users");
+        //this.userenfant = db.collection<UserInterfaces>("enfants");
     }
 
     insert(): Promise < any > {

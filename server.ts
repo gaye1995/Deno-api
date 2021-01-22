@@ -4,7 +4,7 @@ import { UserModels } from "./Models/UserModels.ts";
 import { UsersControllers } from './controllers/UsersControllers.ts';
 import {TokenMidd} from './middlewares/auth.middleware.ts'
 const app = new Application();
-app.use(TokenMidd);
+//app.use(TokenMidd);
 const port = 8000;
 // app.use(router.routes());
 app.router = router;
