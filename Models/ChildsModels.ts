@@ -1,33 +1,34 @@
 import { UserDB } from './../db/UserDB.ts';
-import type { roleTypes, subscriptionTypes } from '../types/rolesTypes.ts';
+import type { roleTypes } from '../types/rolesTypes.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import ChildsInterfaces from '../interfaces/ChildsInterfaces.ts';
 
 import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
 
-export class UserModels extends UserDB implements UserInterfaces {
+export class ChildsModels extends UserDB implements ChildsInterfaces {
 
-    private _role: roleTypes = "Tuteur";
-    firstname: string;
-    lastname: string;
+    private _role: roleTypes = "Enfant";
     email: string;
-    sexe: string;
     password: string;
+    lastname: string;
+    firstname: string;
     dateNaiss: Date;
+    sexe: string;
     phoneNumber ? : string;
-    subscription?:subscriptionTypes = 0;
-    nb_enfants? = 0;
+    subscription:number;
     childs?: ChildsInterfaces[];
 
-    constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaiss: string) {
+    constructor(email: string, password: string, nom: string, prenom: string, tel: string, dateNaiss: string,sexe:string, subscription:number) {
         super();
-        this.firstname = prenom;
-        this.lastname = nom;
         this.email = email;
-        this.sexe = sexe;
         this.password = password;
+        this.lastname = nom;
+        this.firstname = prenom;
         this.dateNaiss = new Date(dateNaiss);
+        this.sexe = sexe;
+        this.phoneNumber = tel;
+        this.subscription = subscription;
 
     }
 
@@ -53,12 +54,12 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.password = await hash(this.password);
         this.email = await this.userdb.insertOne({
             role: this._role,
-            firstname: this.firstname,
-            lastname: this.lastname,
             email: this.email,
-            sexe: this.sexe,
             password: this.password,
+            lastname: this.lastname,
+            firstname: this.firstname,
             dateNaiss: this.dateNaiss,
+            sexe: this.sexe,
             phoneNumber: this.phoneNumber,
             subscription: this.subscription ,
 

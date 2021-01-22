@@ -1,19 +1,17 @@
 import { roleTypes } from '../types/rolesTypes.ts';
 import { userUpdateTypes } from '../types/userUpdateTypes.ts';
-import ChildsInterfaces from './ChildsInterfaces.ts';
 
-export default interface UserInterfaces {
+export default interface ChildsInterfaces {
 
     role: roleTypes;
-    firstname: string;
-    lastname: string;
     email: string;
-    sexe: string;
     password: string;
+    lastname: string;
+    firstname: string;
     dateNaiss: Date;
-    subscription?:number;
-    nb_enfants? : number;
-    childs?: ChildsInterfaces[];
+    sexe: string;
+    subscription:number;
+    
   
     insert(): Promise < any > ;
     update(update:userUpdateTypes): Promise < any > ;
