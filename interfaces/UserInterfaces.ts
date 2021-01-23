@@ -14,7 +14,7 @@ export default interface UserInterfaces {
     dateNaiss: Date;
     subscription?:number;
     nb_enfants? : number;
-    childs?: ChildsInterfaces ;
+    childs?: ChildsInterfaces [];
   
     insert(): Promise < any > ;
     update(update:userUpdateTypes): Promise < any > ;

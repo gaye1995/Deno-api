@@ -19,9 +19,9 @@ export class UserModels extends UserDB implements UserInterfaces {
     phoneNumber ? : string;
     subscription?:subscriptionTypes = 0;
     nb_enfants? = 0;
-    childs?: ChildsInterfaces;
+    childs?: ChildsInterfaces[]=[];
 
-    constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaiss: string,childs: ChildsModels) {
+    constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaiss: string) {
         super();
         this.firstname = prenom;
         this.lastname = nom;
@@ -29,15 +29,6 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.sexe = sexe;
         this.password = password;
         this.dateNaiss = new Date(dateNaiss);
-        this.childs= new ChildsModels(
-            childs.firstname,
-            childs.lastname,
-            childs.email,
-            childs.sexe,
-            childs.password,
-            Date(),
-        );
-
     }
 
     

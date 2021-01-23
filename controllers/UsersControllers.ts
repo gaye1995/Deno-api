@@ -13,10 +13,9 @@ import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../helpers/jwt.ts";
 import { ChildsModels } from "../Models/ChildsModels.ts";
 import { Bson } from "https://deno.land/x/bson/mod.ts";
-import {sendMail} from '../helpers/mails.ts'
+import {smtpconnect} from '../helpers/mails.ts'
 
 export class UsersControllers {
-
 
     static register: HandlerFunc = async(c: Context) => {
 
@@ -29,7 +28,7 @@ export class UsersControllers {
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaiss==""){
                 c.response.status = 400;
                 return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
-            }else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email))
+            }else if(!PasswordException.isValidPassword(data.password))
             {
                 c.response.status = 409;
                 return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
@@ -48,13 +47,11 @@ export class UsersControllers {
                     data.sexe,
                     pass,
                     data.dateNaiss,
-                    data.childs    
                     );
                     console.log(data.firstname);
 
                 await User.insert();
-               
-                //sendMail(User.email);
+               await smtpconnect(User.email);
                 c.response.status = 201;
                 return c.json({ error: false, message: "L'utilisateur a bien été créé avec succès",User});
             }

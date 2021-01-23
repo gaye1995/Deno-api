@@ -4,7 +4,14 @@ import { UserModels } from "./Models/UserModels.ts";
 import { UsersControllers } from './controllers/UsersControllers.ts';
 import {TokenMidd} from './middlewares/auth.middleware.ts'
 import { SmtpClient } from "https://deno.land/x/smtp/mod.ts";
+import { config } from './config/config.ts';
 
+
+//const client = new SmtpClient();
+const {
+    EMAIL_USER,
+    EMAIL_PASSWORD
+} = config;
 const app = new Application();
 const client = new SmtpClient();
 //app.use(TokenMidd);
@@ -16,9 +23,11 @@ app.router = router;
   //});
 // deno run --allow-net --allow-read --unstable server.ts
 app.start({ port });
-/*
 console.log('app listening on port ' + port);
-await client.connect({
-  hostname: "smtp.163.com",
-  port: 25,
+/*
+await client.connectTLS({
+    hostname: "smtp.gmail.com",
+    port: 465,
+    username: EMAIL_USER,
+    password: EMAIL_PASSWORD,
   });*/
