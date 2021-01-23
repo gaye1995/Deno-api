@@ -5,6 +5,7 @@ import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import ChildsInterfaces from '../interfaces/ChildsInterfaces.ts';
 
 import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
+import { ChildsModels } from "./ChildsModels.ts";
 
 export class UserModels extends UserDB implements UserInterfaces {
 
@@ -18,9 +19,9 @@ export class UserModels extends UserDB implements UserInterfaces {
     phoneNumber ? : string;
     subscription?:subscriptionTypes = 0;
     nb_enfants? = 0;
-    childs?: ChildsInterfaces[];
+    childs?: ChildsInterfaces;
 
-    constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaiss: string) {
+    constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaiss: string,childs: ChildsModels) {
         super();
         this.firstname = prenom;
         this.lastname = nom;
@@ -28,6 +29,14 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.sexe = sexe;
         this.password = password;
         this.dateNaiss = new Date(dateNaiss);
+        this.childs= new ChildsModels(
+            childs.firstname,
+            childs.lastname,
+            childs.email,
+            childs.sexe,
+            childs.password,
+            Date(),
+        );
 
     }
 
@@ -61,6 +70,8 @@ export class UserModels extends UserDB implements UserInterfaces {
             dateNaiss: this.dateNaiss,
             phoneNumber: this.phoneNumber,
             subscription: this.subscription ,
+            nb_enfants: this.nb_enfants,
+            childs: this.childs,
 
         });
     }
@@ -76,7 +87,7 @@ export class UserModels extends UserDB implements UserInterfaces {
             { $set: {subscription: 1} }
           );
           if(modifiedCount) return subscription;
-          return console.log('subscription: 0')
+          return false;
     }
     delete(): Promise < any > {
         throw new Error('Method not implemented.');

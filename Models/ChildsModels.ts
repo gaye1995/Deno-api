@@ -9,30 +9,29 @@ import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpda
 export class ChildsModels extends UserDB implements ChildsInterfaces {
 
     private _role: roleTypes = "Enfant";
+    firstname: string;
+    lastname: string;
     email: string;
     password: string;
-    lastname: string;
-    firstname: string;
     dateNaiss: Date;
     sexe: string;
     phoneNumber ? : string;
-    subscription:number;
-    childs?: ChildsInterfaces[];
+    subscription ?= 1;
+    nb_enfants ?= 0;
+    childs?: ChildsInterfaces ;
 
-    constructor(email: string, password: string, nom: string, prenom: string, tel: string, dateNaiss: string,sexe:string, subscription:number) {
+    constructor(prenom: string, nom: string, email: string, password: string, dateNaiss: string, sexe:string) {
         super();
+        this.firstname = prenom;
+        this.lastname = nom;
         this.email = email;
         this.password = password;
-        this.lastname = nom;
-        this.firstname = prenom;
         this.dateNaiss = new Date(dateNaiss);
         this.sexe = sexe;
-        this.phoneNumber = tel;
-        this.subscription = subscription;
 
     }
 
-    
+
 
     get role(): roleTypes {
         return this._role;
@@ -54,14 +53,15 @@ export class ChildsModels extends UserDB implements ChildsInterfaces {
         this.password = await hash(this.password);
         this.email = await this.userdb.insertOne({
             role: this._role,
+            firstname: this.firstname,
+            lastname: this.lastname,
             email: this.email,
             password: this.password,
-            lastname: this.lastname,
-            firstname: this.firstname,
             dateNaiss: this.dateNaiss,
             sexe: this.sexe,
             phoneNumber: this.phoneNumber,
             subscription: this.subscription ,
+            nb_enfants: this.nb_enfants
 
         });
     }

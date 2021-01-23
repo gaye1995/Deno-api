@@ -3,14 +3,17 @@ import { userUpdateTypes } from '../types/userUpdateTypes.ts';
 
 export default interface ChildsInterfaces {
 
+    
     role: roleTypes;
+    firstname: string;
+    lastname: string;
     email: string;
     password: string;
-    lastname: string;
-    firstname: string;
     dateNaiss: Date;
     sexe: string;
-    subscription:number;
+    subscription?:number;
+    nb_enfants? : number;
+    childs?: ChildsInterfaces;
     
   
     insert(): Promise < any > ;

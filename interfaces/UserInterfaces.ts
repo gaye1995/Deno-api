@@ -1,3 +1,4 @@
+import { ChildsModels } from "../Models/ChildsModels.ts";
 import { roleTypes } from '../types/rolesTypes.ts';
 import { userUpdateTypes } from '../types/userUpdateTypes.ts';
 import ChildsInterfaces from './ChildsInterfaces.ts';
@@ -13,7 +14,7 @@ export default interface UserInterfaces {
     dateNaiss: Date;
     subscription?:number;
     nb_enfants? : number;
-    childs?: ChildsInterfaces[];
+    childs?: ChildsInterfaces ;
   
     insert(): Promise < any > ;
     update(update:userUpdateTypes): Promise < any > ;
