@@ -6,7 +6,6 @@ import { userUpdateTypes,SubscriptionUpdateTypes } from "../types/userUpdateType
 export class UserDB{
 
     public userdb: any;
-    public userenfant: any;
 
     
     constructor(){
@@ -27,6 +26,7 @@ export class UserDB{
             phoneNumber: this.userdb.phoneNumber,
             subscription: this.userdb.subscription ,
             nb_enfants: this.userdb.nb_enfants,
+            childs: this.userdb.childs,
 
         });
     }

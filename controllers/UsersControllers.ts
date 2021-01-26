@@ -12,9 +12,8 @@ import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
 import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../helpers/jwt.ts";
 import { ChildsModels } from "../Models/ChildsModels.ts";
-import { Bson } from "https://deno.land/x/bson/mod.ts";
+//import { Bson } from "https://deno.land/x/bson/mod.ts";
 import {smtpconnect} from '../helpers/mails.ts'
-
 export class UsersControllers {
 
     static register: HandlerFunc = async(c: Context) => {
@@ -51,7 +50,7 @@ export class UsersControllers {
                     console.log(data.firstname);
 
                 await User.insert();
-               await smtpconnect(User.email);
+              // await smtpconnect(User.email);
                 c.response.status = 201;
                 return c.json({ error: false, message: "L'utilisateur a bien été créé avec succès",User});
             }
@@ -104,7 +103,7 @@ export class UsersControllers {
 
       
     } 
-    static subscription: HandlerFunc = async(c: Context) => {
+   /* static subscription: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
         const authorization: any = c.request.headers.get("authorization");
@@ -116,7 +115,26 @@ export class UsersControllers {
             if(!token){
                 return c.json({ error: true, message: "Votre token n'est pas correct" });
             }
-            
+            const dataCard:any = await c.body;
+           const userclient = stripe.customers.create({
+                email: data.email
+            });
+           if(userclient){
+               stripe.charge.create({
+                amount: 1000 ,// en centimes, 
+               devise: 'usd', 
+               source: 'STRIPE_TOKEN_FROM_CLIENT', 
+               description: 'Any description about the payment', 
+               metadata: { 
+                   idcard: dataCard.idcard,
+                   cvc: dataCard.cvc  // any meta-data you voulez stocker 
+               } 
+           })
+        }
+
+
+
+
             const user = await userdb.findOne({email});
 
             //console.log(user.subscription);
@@ -133,15 +151,14 @@ export class UsersControllers {
         }
        
       
-    }
+    }*/
 
     static userchild: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
         try {
-            console.log('ok');
-       const authorization: any = c.request.headers.get("authorization");
-       if(authorization){
+        const authorization: any = c.request.headers.get("authorization");
+        if(authorization){
             const token = await getToken(authorization);
             const dataparent = await getJwtPayload(token);
             const userParent: any = await userdb.findOne({ email: dataparent.email })
@@ -178,8 +195,9 @@ export class UsersControllers {
                     
                     const { modifiedCount } = await userdb.updateOne(
                         { email: userParent.email },
-                        { $set: {childs: userParent.childs = await Enfant.insert()}});
+                        { $set: {childs: []}});
                     dataparent.nb_enfants++;
+                    console.log(userParent.childs);
                     c.response.status = 200;
                     return c.json({ error: false, message: "Votre enfant a bien été créé avec succès", userParent});
                 }

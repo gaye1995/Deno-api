@@ -3,13 +3,14 @@ import type { roleTypes, subscriptionTypes } from '../types/rolesTypes.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import ChildsInterfaces from '../interfaces/ChildsInterfaces.ts';
-
+import { Bson } from "https://deno.land/x/bson/mod.ts";
 import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
 import { ChildsModels } from "./ChildsModels.ts";
 
 export class UserModels extends UserDB implements UserInterfaces {
 
     private _role: roleTypes = "Tuteur";
+    //objId:any = new Bson.ObjectID(id);
     firstname: string;
     lastname: string;
     email: string;
@@ -19,7 +20,7 @@ export class UserModels extends UserDB implements UserInterfaces {
     phoneNumber ? : string;
     subscription?:subscriptionTypes = 0;
     nb_enfants? = 0;
-    childs?: ChildsInterfaces[]=[];
+    childs?: ChildsInterfaces[]= [];
 
     constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaiss: string) {
         super();
