@@ -18,9 +18,9 @@ export class ChildsModels extends UserDB implements ChildsInterfaces {
     phoneNumber ? : string;
     subscription ?= 1;
     nb_enfants ?= 0;
-    childs?: ChildsInterfaces ;
+    childs?: ChildsModels ;
 
-    constructor(prenom: string, nom: string, email: string, password: string, dateNaiss: Date, sexe:string) {
+    constructor(prenom: string, nom: string, email: string, password: string, dateNaiss: string, sexe:string) {
         super();
         this.firstname = prenom;
         this.lastname = nom;

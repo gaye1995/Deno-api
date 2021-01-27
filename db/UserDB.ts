@@ -2,6 +2,8 @@ import { db } from './db.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import { userUpdateTypes,SubscriptionUpdateTypes } from "../types/userUpdateTypes.ts";
+import ChildsInterfaces from "../interfaces/ChildsInterfaces.ts";
+import { ChildsModels } from "../Models/ChildsModels.ts";
 
 export class UserDB{
 
@@ -30,10 +32,10 @@ export class UserDB{
 
         });
     }
-   async update(update:userUpdateTypes): Promise < any > {
+   async update(childs:ChildsModels): Promise < any > {
         const { modifiedCount } = await this.userdb.updateOne(
             { email: this.userdb.email },
-            { $set: update }
+            { $set: childs }
           ); 
        }
    async updateSubscription(updateSubscription:SubscriptionUpdateTypes): Promise < any > {

@@ -158,7 +158,6 @@ export class UsersControllers {
         let userdb = _userdb.userdb;
         try {
         const authorization: any = c.request.headers.get("authorization");
-        if(authorization){
             const token = await getToken(authorization);
             const dataparent = await getJwtPayload(token);
             const userParent: any = await userdb.findOne({ email: dataparent.email })
@@ -174,36 +173,30 @@ export class UsersControllers {
             {
                 c.response.status = 409;
                 return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
-            }else if(user){
+            }else if(userParent.childs[3]==data.email){
                 c.response.status = 409;
                 return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
             }else if(dataparent.nb_enfants>3){
                 c.response.status = 409;
                 return c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" })
+            }else if(userParent.childs.length > 3){
+                c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
             }else{
-                const pass = await PasswordException.hashPassword(data.password);
-                const Enfant = new ChildsModels(
-                    data.firstname,
-                    data.lastname,
-                    data.email,
-                    pass,
-                    data.dateNaiss,
-                    data.sexe,
-                    );
-                    Enfant.setRole('Enfant');
-                    console.log(userParent.childs);
-                    
+                   const pass = await PasswordException.hashPassword(data.password);
                     const { modifiedCount } = await userdb.updateOne(
-                        { email: userParent.email },
-                        { $set: {childs: []}});
-                    dataparent.nb_enfants++;
-                    console.log(userParent.childs);
+                            { email: userParent.email },
+                            { $push: {childs : [{ 
+                            "role": "Enfant",
+                            "firstname": data.firstname,
+                            "lastname": data.lastname,
+                            "email": data.email,
+                            "pass": pass,
+                            "dateNaissance":data.dateNaiss,
+                            "sexe":data.sexe,
+                    } ]} });
                     c.response.status = 200;
-                    return c.json({ error: false, message: "Votre enfant a bien été créé avec succès", userParent});
-                }
-            }else{
-            
-            }
+                    return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",userParent});
+               }    
         }catch (err){
                 c.response.status = 401;
                 return c.json({ error: true, message: err.message });

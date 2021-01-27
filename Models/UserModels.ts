@@ -10,7 +10,6 @@ import { ChildsModels } from "./ChildsModels.ts";
 export class UserModels extends UserDB implements UserInterfaces {
 
     private _role: roleTypes = "Tuteur";
-    //objId:any = new Bson.ObjectID(id);
     firstname: string;
     lastname: string;
     email: string;
@@ -19,8 +18,24 @@ export class UserModels extends UserDB implements UserInterfaces {
     dateNaiss: Date;
     phoneNumber ? : string;
     subscription?:subscriptionTypes = 0;
-    nb_enfants? = 0;
-    childs?: ChildsInterfaces[]= [];
+    childs?: [{
+        role: "Enfant",
+        firstname: string,
+        lastname: string,
+        email: string,
+        sexe: string,
+        password: string,
+        dateNaiss: Date,
+    }] = [ {
+        "role": "Enfant",
+        firstname: '',
+        lastname: '',
+        email: '',
+        sexe: '',
+        password: '',
+        dateNaiss: new Date,
+    }];
+    
 
     constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaiss: string) {
         super();
@@ -62,7 +77,6 @@ export class UserModels extends UserDB implements UserInterfaces {
             dateNaiss: this.dateNaiss,
             phoneNumber: this.phoneNumber,
             subscription: this.subscription ,
-            nb_enfants: this.nb_enfants,
             childs: this.childs,
 
         });
@@ -84,4 +98,10 @@ export class UserModels extends UserDB implements UserInterfaces {
     delete(): Promise < any > {
         throw new Error('Method not implemented.');
     }
+    async updatechild(childs:ChildsModels): Promise < any > {
+        const { modifiedCount } = await this.userdb.updateOne(
+            { email: this.userdb.email },
+            { $set: {childs : childs.insert()} }
+          ); 
+       }
 }
