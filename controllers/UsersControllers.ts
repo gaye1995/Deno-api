@@ -176,9 +176,6 @@ export class UsersControllers {
             }else if(userParent.childs[3]==data.email){
                 c.response.status = 409;
                 return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
-            }else if(dataparent.nb_enfants>3){
-                c.response.status = 409;
-                return c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" })
             }else if(userParent.childs.length > 3){
                 c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
             }else{
@@ -190,9 +187,10 @@ export class UsersControllers {
                             "firstname": data.firstname,
                             "lastname": data.lastname,
                             "email": data.email,
-                            "pass": pass,
+                            "password": pass,
                             "dateNaissance":data.dateNaiss,
                             "sexe":data.sexe,
+                            "subscription": 1,
                     } ]} });
                     c.response.status = 200;
                     return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",userParent});

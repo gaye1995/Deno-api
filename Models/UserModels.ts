@@ -26,14 +26,17 @@ export class UserModels extends UserDB implements UserInterfaces {
         sexe: string,
         password: string,
         dateNaiss: Date,
+        subscription: 1 | 0,
+
     }] = [ {
-        "role": "Enfant",
+        role: "Enfant",
         firstname: '',
         lastname: '',
         email: '',
         sexe: '',
         password: '',
         dateNaiss: new Date,
+        subscription :1
     }];
     
 

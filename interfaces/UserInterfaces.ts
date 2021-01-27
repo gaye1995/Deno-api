@@ -21,6 +21,7 @@ export default interface UserInterfaces {
         sexe: string;
         password: string;
         dateNaiss: Date;
+        subscription: 1 | 0;
          }];
   
     insert(): Promise < any > ;
