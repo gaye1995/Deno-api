@@ -8,8 +8,10 @@ export default interface UserInterfaces {
     password: string;
     lastname: string;
     firstname: string;
-    dateNaiss: Date;
+    dateNaissance: Date;
     sexe: string;
+    access_token:string;
+    refresh_token:String;
   
     insert(): Promise < any > ;
     update(update:userUpdateTypes): Promise < any > ;

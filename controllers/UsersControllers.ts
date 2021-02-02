@@ -18,36 +18,35 @@ export class UsersControllers {
 
 
     static register: HandlerFunc = async(c: Context) => {
-
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
-
         const data : any = await c.body;
-                try {
+        try {
             const user: any = await userdb.findOne({ email: data.email })
-            if(user){
-                c.response.status = 409;
-                return c.json({ error: false, message: 'Email/password incorrect' });
-            }else{
-                const pass = await PasswordException.hashPassword(data.password);
-                const User = new UserModels(
-                    data.email,
-                    pass,
-                    data.lastname,
-                    data.firstname,
-                    data.dateNaiss,
-                    data.sexe,
-                    data.phoneNumber,
-                    data.subscription,
-                    );
+            if(user) throw {code: 409} 
+            const pass = await PasswordException.hashPassword(data.password);
+            const User = new UserModels(
+                data.email,
+                pass,
+                data.lastname,
+                data.firstname,
+                data.dateNaissance,
+                data.sexe,
+                data.phoneNumber,
+                );
                 await User.insert();
                 c.response.status = 200;
                 return c.json({ error: false, message: "l'utilisateur a bien été créé avec succés", User});
-            }
-            } catch (err) {
+        }catch (error) {
+            if(error.code === 409){
+                c.response.status = 409;
+                return c.json({ error: false, message: 'Email/password incorrect' });
+            }else{
                 c.response.status = 401;
-                return c.json({ error: true, message: err.message });
+                return c.json({ error: true, message: error.message });
             }
+                
+        }
     }
 
     static login: HandlerFunc = async(c: Context) => {
@@ -72,12 +71,12 @@ export class UsersControllers {
                 c.response.status = 400;
                 return c.json({ error: false, message: 'Email/password incorrect' });
             }else {
-           const token = {
-            'access_token': await jwt.getAuthToken(user),
-            'refresh_token': await jwt.getRefreshToken(user),
-            };
-            c.response.status = 200;
-            return c.json({ error: false, message: "l'utilisateur a été authentifiée succés", user, token });
+            await user.updateOne(
+                { $set: user.access_token = await jwt.getAuthToken(user) },
+                { $set: user.access_token = await jwt.getRefreshToken(user) }
+                ),
+                 c.response.status = 200;
+            return c.json({ error: false, message: "l'utilisateur a été authentifiée succés", user });
         }
         } catch (err) {
             c.response.status = 401;
@@ -125,12 +124,13 @@ export class UsersControllers {
         let userdb = _userdb.userdb;
 
         const data : any = await c.body;
-                try {
+            try {
             const user: any = await userdb.findOne({ email: data.email })
-            if(user){
+            if(user) throw { code: 409 }
+            /*{
                 c.response.status = 409;
                 return c.json({ error: false, message: 'Email/password incorrect' });
-            }else{
+            }else{*/
                 const pass = await PasswordException.hashPassword(data.password);
                 const User = new UserModels(
                     data.email,
@@ -140,15 +140,19 @@ export class UsersControllers {
                     data.dateNaiss,
                     data.sexe,
                     data.phoneNumber,
-                    data.subscription,
                     );
                 await User.insert();
                 c.response.status = 200;
                 return c.json({ error: false, message: "l'utilisateur a bien été créé avec succés", User});
-            }
-            } catch (err) {
-                c.response.status = 401;
-                return c.json({ error: true, message: err.message });
+            //}
+            } catch (error) {
+                if(error.code === 409) {c.response.status = 409;
+                    return c.json({ error: false, message: 'Email/password incorrect' });}
+                else{
+                    c.response.status = 401;
+                    return c.json({ error: true, message: error.message });
+                }
+                
             }
     }
 }

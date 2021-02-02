@@ -11,21 +11,25 @@ export class UserModels extends UserDB implements UserInterfaces {
     password: string;
     lastname: string;
     firstname: string;
-    dateNaiss: Date;
+    dateNaissance: Date;
     sexe: string;
+    access_token:string;
+    refresh_token:String;
     phoneNumber ? : string;
     subscription: number ;
 
-    constructor(email: string, password: string, nom: string, prenom: string, tel: string, dateNaiss: string,sexe:string, subscription:boolean) {
+    constructor(email: string, password: string, nom: string, prenom: string, tel: string, dateNaiss: string,sexe:string) {
         super();
         this.email = email;
         this.password = password;
         this.lastname = nom;
         this.firstname = prenom;
-        this.dateNaiss = new Date(dateNaiss);
+        this.dateNaissance = new Date(dateNaiss);
         this.sexe = sexe;
         this.phoneNumber = tel;
         this.subscription = 0;
+        this.access_token='';
+        this.refresh_token='';
 
     }
 
@@ -40,7 +44,7 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.update({ role: role });
     }
     getAge(): Number {
-        var ageDifMs = Date.now() - this.dateNaiss.getTime();
+        var ageDifMs = Date.now() - this.dateNaissance.getTime();
         var ageDate = new Date(ageDifMs);
         return Math.abs(ageDate.getUTCFullYear() - 1970);
     }
@@ -55,7 +59,7 @@ export class UserModels extends UserDB implements UserInterfaces {
             password: this.password,
             lastname: this.lastname,
             firstname: this.firstname,
-            dateNaiss: this.dateNaiss,
+            dateNaiss: this.dateNaissance,
             sexe: this.sexe,
             phoneNumber: this.phoneNumber,
             subscription: this.subscription ,
