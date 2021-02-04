@@ -69,7 +69,7 @@ export class UsersControllers {
             let data : any = await c.body;
             try {
                 const user: any = await userdb.findOne({ email: data.email })
-                if(data.email == undefined || data.password == undefined){
+                if(data.email == '' || data.password == ''){
                     c.response.status = 400;
                     return c.json({ error: true, message: "Email/password manquants" });
                 }
@@ -84,9 +84,14 @@ export class UsersControllers {
                     return c.json({ error: false, message: 'Email/password incorrect' });
                 }*/
                 else {
-                    await user.updateOne(
-                    {$set: user.access_token = await jwt.getAuthToken(user)},
-                    {$set: user.refresh_token = await jwt.getRefreshToken(user)});
+                    console.log(user);
+                    console.log(await jwt.getRefreshToken(user));
+                    await userdb.updateOne(
+                    { email: user.email },
+                    {$set: {access_token: await jwt.getAuthToken(user)}},
+                    {$set: {refresh_token: await jwt.getRefreshToken(user)}}
+                    );
+                    //console.log(user);
                     c.response.status = 200;
                     return c.json({ error: false, message: "L'utilisateur a été authentifié succès", user });
                 }
@@ -189,12 +194,13 @@ export class UsersControllers {
                     pass,
                     data.dateNaissance,
                     );
-                await User.insert();
-               await User.updatechild(userParent._id);
+                    await User.insert();
+                    await userdb.updateOne(
+                    { email: User.email },
+                    {$set: {idparent: userParent._id}},
+                    );
                 User.setRole('Enfant');
-                //await User.updateSubscription();
-                console.log(userParent._id);
-                console.log(User.idparent);
+                console.log(User.email);
 
                 c.response.status = 200;
                 return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",userParent});
