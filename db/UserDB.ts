@@ -1,6 +1,6 @@
 import { db } from './db.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
-import { hash } from '../helpers/password.helpers.ts';
+import { hash } from '../middlewares/auth.middleware.ts';
 import { userUpdateTypes,SubscriptionUpdateTypes } from "../types/userUpdateTypes.ts";
 
 

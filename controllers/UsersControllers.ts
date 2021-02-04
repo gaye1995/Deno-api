@@ -1,6 +1,6 @@
 
 import { UserDB } from './../db/UserDB.ts';
-import * as jwt from '../helpers/jwt.ts';
+import * as jwt from '../middlewares/jwt-middleware.ts';
 import { UserModels } from '../Models/UserModels.ts';
 import { roleTypes } from '../types/rolesTypes.ts';
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
@@ -10,8 +10,7 @@ import EmailException from '../exception/EmailException.ts';
 import { Get } from "https://deno.land/x/abc@v1.2.4/_http_method.ts";
 import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
 import {getToken} from '../middlewares/jwt-middleware.ts'
-import { getJwtPayload } from "../helpers/jwt.ts";
-import { ChildsModels } from "../Models/ChildsModels.ts";
+import { getJwtPayload } from "../middlewares/jwt-middleware.ts";
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 import {smtpconnect} from '../helpers/mails.ts'
 export class UsersControllers {
@@ -24,6 +23,7 @@ export class UsersControllers {
             try {
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
+            console.log(data.email);
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaissance==""){
                 c.response.status = 400;
                 return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });

@@ -1,11 +1,9 @@
 import { UserDB } from './../db/UserDB.ts';
 import type { roleTypes, subscriptionTypes } from '../types/rolesTypes.ts';
-import { hash } from '../helpers/password.helpers.ts';
+import { hash } from '../middlewares/auth.middleware.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
-import ChildsInterfaces from '../interfaces/ChildsInterfaces.ts';
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
-import { ChildsModels } from "./ChildsModels.ts";
 import { ObjectId } from "https://deno.land/x/mongo@v0.20.1/src/utils/bson.ts";
 
 export class UserModels extends UserDB implements UserInterfaces {
