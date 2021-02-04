@@ -1,7 +1,6 @@
 import { create, verify, decode, getNumericDate } from "https://deno.land/x/djwt@v2.0/mod.ts";
 import { config } from '../config/config.ts';
 
-
 const {
     JWT_TOKEN_SECRET,
     JWT_ACCESS_TOKEN_EXP,
@@ -16,7 +15,6 @@ const header: any = {
 const getAuthToken = async (user: any) => {
     const payload: any = {
         iss: "deno-imie-api",
-        name: user.name,
         email: user.email,
         roles: user.role,
         exp: getNumericDate(new Date().getTime() + parseInt(JWT_ACCESS_TOKEN_EXP)),
@@ -38,11 +36,12 @@ const getRefreshToken = async(user: any) => {
 const getJwtPayload = async(token: string): Promise < any | null > => {
     try {
         const jwtObject = await verify(token, JWT_TOKEN_SECRET, header.alg);
-        if (jwtObject && jwtObject.payload) {
-            return jwtObject.payload;
+        if (jwtObject) {
+            return jwtObject;
         }
     } catch (err) {}
     return null;
 };
 
-export { getAuthToken, getRefreshToken, getJwtPayload };
+
+export { getAuthToken, getRefreshToken, getJwtPayload , };
