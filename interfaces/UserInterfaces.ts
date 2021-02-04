@@ -2,27 +2,21 @@ import { ChildsModels } from "../Models/ChildsModels.ts";
 import { roleTypes } from '../types/rolesTypes.ts';
 import { userUpdateTypes } from '../types/userUpdateTypes.ts';
 import ChildsInterfaces from "./ChildsInterfaces.ts";
+import { Bson } from "https://deno.land/x/bson/mod.ts";
+import { ObjectId } from "https://deno.land/x/mongo@v0.20.1/src/utils/bson.ts";
 
 export default interface UserInterfaces {
-
     role: roleTypes;
     firstname: string;
     lastname: string;
     email: string;
     sexe: string;
     password: string;
-    dateNaiss: Date;
+    dateNaissance: Date;
     subscription?:number;
-    childs?:  [{
-        role: roleTypes;
-        firstname: string;
-        lastname: string;
-        email: string;
-        sexe: string;
-        password: string;
-        dateNaiss: Date;
-        subscription: 1 | 0;
-         }];
+    access_token: string;
+    refresh_token: string;
+    idparent : any;
   
     insert(): Promise < any > ;
     update(update:userUpdateTypes): Promise < any > ;

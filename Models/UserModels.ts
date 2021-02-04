@@ -6,52 +6,41 @@ import ChildsInterfaces from '../interfaces/ChildsInterfaces.ts';
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
 import { ChildsModels } from "./ChildsModels.ts";
+import { ObjectId } from "https://deno.land/x/mongo@v0.20.1/src/utils/bson.ts";
 
 export class UserModels extends UserDB implements UserInterfaces {
 
     private _role: roleTypes = "Tuteur";
+    private id :{ $oid: string }|null = null;
     firstname: string;
     lastname: string;
     email: string;
     sexe: string;
     password: string;
-    dateNaiss: Date;
+    dateNaissance: Date;
+    access_token:string;
+    refresh_token:string;
     phoneNumber ? : string;
     subscription?:subscriptionTypes = 0;
-    childs?: [{
-        role: "Enfant",
-        firstname: string,
-        lastname: string,
-        email: string,
-        sexe: string,
-        password: string,
-        dateNaiss: Date,
-        subscription: 1 | 0,
-
-    }] = [ {
-        role: "Enfant",
-        firstname: '',
-        lastname: '',
-        email: '',
-        sexe: '',
-        password: '',
-        dateNaiss: new Date,
-        subscription :1
-    }];
-    
-
-    constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaiss: string) {
+    idparent:  Bson.ObjectId ;
+    constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaissance: string) {
         super();
         this.firstname = prenom;
         this.lastname = nom;
         this.email = email;
         this.sexe = sexe;
         this.password = password;
-        this.dateNaiss = new Date(dateNaiss);
+        this.dateNaissance = new Date(dateNaissance);
+        this.access_token  = '';
+        this.refresh_token = '';
+        this.idparent = new Bson.ObjectId(this.id);
+
     }
 
     
-
+    get _id():string|null{
+        return (this.id === null)?null: this.id.$oid;
+    }
     get role(): roleTypes {
         return this._role;
     }
@@ -61,7 +50,7 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.update({ role: role });
     }
     getAge(): Number {
-        var ageDifMs = Date.now() - this.dateNaiss.getTime();
+        var ageDifMs = Date.now() - this.dateNaissance.getTime();
         var ageDate = new Date(ageDifMs);
         return Math.abs(ageDate.getUTCFullYear() - 1970);
     }
@@ -77,10 +66,12 @@ export class UserModels extends UserDB implements UserInterfaces {
             email: this.email,
             sexe: this.sexe,
             password: this.password,
-            dateNaiss: this.dateNaiss,
+            dateNaissance: this.dateNaissance,
             phoneNumber: this.phoneNumber,
             subscription: this.subscription ,
-            childs: this.childs,
+            access_token: this.access_token ,
+            refresh_token: this.refresh_token ,
+            idparent :  this.idparent,
 
         });
     }
@@ -90,21 +81,19 @@ export class UserModels extends UserDB implements UserInterfaces {
             { $set: update }
           );
     }
-    async updateSubscription(subscription:SubscriptionUpdateTypes) {
+    async updateSubscription() {
         const { modifiedCount } = await this.userdb.updateOne(
             { email: this.email },
             { $set: {subscription: 1} }
           );
-          if(modifiedCount) return subscription;
-          return false;
     }
     delete(): Promise < any > {
         throw new Error('Method not implemented.');
     }
-    async updatechild(childs:ChildsModels): Promise < any > {
+    async updatechild(parent: Bson.ObjectId): Promise < any > {
         const { modifiedCount } = await this.userdb.updateOne(
             { email: this.userdb.email },
-            { $set: {childs : childs.insert()} }
+            { $set: {idparent : parent} }
           ); 
        }
 }

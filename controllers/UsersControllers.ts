@@ -12,7 +12,7 @@ import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
 import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../helpers/jwt.ts";
 import { ChildsModels } from "../Models/ChildsModels.ts";
-//import { Bson } from "https://deno.land/x/bson/mod.ts";
+import { Bson } from "https://deno.land/x/bson/mod.ts";
 import {smtpconnect} from '../helpers/mails.ts'
 export class UsersControllers {
 
@@ -24,7 +24,7 @@ export class UsersControllers {
             try {
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
-            if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaiss==""){
+            if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaissance==""){
                 c.response.status = 400;
                 return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
             }else if(!PasswordException.isValidPassword(data.password))
@@ -32,7 +32,8 @@ export class UsersControllers {
                 c.response.status = 409;
                 return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
             }
-            else if(user){
+            else if(user)
+            {
                 c.response.status = 409;
                 return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
             }
@@ -45,7 +46,7 @@ export class UsersControllers {
                     data.email,
                     data.sexe,
                     pass,
-                    data.dateNaiss,
+                    data.dateNaissance,
                     );
                     console.log(data.firstname);
 
@@ -54,10 +55,10 @@ export class UsersControllers {
                 c.response.status = 201;
                 return c.json({ error: false, message: "L'utilisateur a bien été créé avec succès",User});
             }
-        } catch (err) {
-                c.response.status = 401;
-                return c.json({ error: true, message: err.message });
-            }
+        }catch (err) {
+            c.response.status = 401;
+            return c.json({ error: true, message: err.message });
+        }
     }
 
         static login: HandlerFunc = async(c: Context) => {
@@ -83,14 +84,13 @@ export class UsersControllers {
                     return c.json({ error: false, message: 'Email/password incorrect' });
                 }*/
                 else {
-                const token = {
-                    'access_token': await jwt.getAuthToken(user),
-                    'refresh_token': await jwt.getRefreshToken(user),
-                    };
-                c.response.status = 200;
-                return c.json({ error: false, message: "L'utilisateur a été authentifié succès", user, token });
-                 }
-            } catch (err) {
+                    await user.updateOne(
+                    {$set: user.access_token = await jwt.getAuthToken(user)},
+                    {$set: user.refresh_token = await jwt.getRefreshToken(user)});
+                    c.response.status = 200;
+                    return c.json({ error: false, message: "L'utilisateur a été authentifié succès", user });
+                }
+            }catch (err) {
                 c.response.status = 401;
                 return { error: true, message: err.message };
             }
@@ -173,32 +173,36 @@ export class UsersControllers {
             {
                 c.response.status = 409;
                 return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
-            }else if(userParent.childs[3]==data.email){
+            }else if(user){
                 c.response.status = 409;
                 return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
-            }else if(userParent.childs.length > 3){
-                c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
-            }else{
-                   const pass = await PasswordException.hashPassword(data.password);
-                    const { modifiedCount } = await userdb.updateOne(
-                            { email: userParent.email },
-                            { $push: {childs : [{ 
-                            "role": "Enfant",
-                            "firstname": data.firstname,
-                            "lastname": data.lastname,
-                            "email": data.email,
-                            "password": pass,
-                            "dateNaissance":data.dateNaiss,
-                            "sexe":data.sexe,
-                            "subscription": 1,
-                    } ]} });
-                    c.response.status = 200;
-                    return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",userParent});
-               }    
-        }catch (err){
-                c.response.status = 401;
-                return c.json({ error: true, message: err.message });
+            //}else if(user.count({idparent: userdb._id}) <=3){
+               // c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
             }
+            else{
+                   const pass = await PasswordException.hashPassword(data.password);
+                   const User = new UserModels(
+                    data.firstname,
+                    data.lastname,
+                    data.email,
+                    data.sexe,
+                    pass,
+                    data.dateNaissance,
+                    );
+                await User.insert();
+               await User.updatechild(userParent._id);
+                User.setRole('Enfant');
+                //await User.updateSubscription();
+                console.log(userParent._id);
+                console.log(User.idparent);
+
+                c.response.status = 200;
+                return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",userParent});
+            }    
+        }catch (err){
+            c.response.status = 401;
+            return c.json({ error: true, message: err.message });
+        }
 }
        
     

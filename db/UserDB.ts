@@ -2,8 +2,7 @@ import { db } from './db.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import { userUpdateTypes,SubscriptionUpdateTypes } from "../types/userUpdateTypes.ts";
-import ChildsInterfaces from "../interfaces/ChildsInterfaces.ts";
-import { ChildsModels } from "../Models/ChildsModels.ts";
+
 
 export class UserDB{
 
@@ -28,14 +27,14 @@ export class UserDB{
             phoneNumber: this.userdb.phoneNumber,
             subscription: this.userdb.subscription ,
             nb_enfants: this.userdb.nb_enfants,
-            childs: this.userdb.childs,
+            idparent: this.userdb.idparent,
 
         });
     }
-   async update(childs:ChildsModels): Promise < any > {
+    async updatechild(parent: any): Promise < any > {
         const { modifiedCount } = await this.userdb.updateOne(
             { email: this.userdb.email },
-            { $set: childs }
+            { $set: {idparent : parent} }
           ); 
        }
    async updateSubscription(updateSubscription:SubscriptionUpdateTypes): Promise < any > {
