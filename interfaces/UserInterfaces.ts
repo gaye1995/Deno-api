@@ -14,9 +14,14 @@ export default interface UserInterfaces {
     subscription?:number;
     access_token: string;
     refresh_token: string;
-    idparent : any;
+    idparent : Bson.ObjectId;
+    nbConnexion: number;
+
+    createdAt: Date;
+    updatedAt : Date;
   
     insert(): Promise < any > ;
     update(update:userUpdateTypes): Promise < any > ;
     delete(): Promise < any > ;
+    
 }

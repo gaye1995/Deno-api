@@ -49,9 +49,12 @@ export class UsersControllers {
                     data.dateNaissance,
                     );
                     console.log(data.firstname);
-
+                    console.log(data.lastname);
+                    console.log(data.email);
+                    console.log(pass);
+                    console.log(data.dateNaissance);
                 await User.insert();
-              // await smtpconnect(User.email);
+               await smtpconnect(User.email);
                 c.response.status = 201;
                 return c.json({ error: false, message: "L'utilisateur a bien été créé avec succès",User});
             }
@@ -84,14 +87,13 @@ export class UsersControllers {
                     return c.json({ error: false, message: 'Email/password incorrect' });
                 }*/
                 else {
-                    console.log(user);
-                    console.log(await jwt.getRefreshToken(user));
+                    //console.log(user.email);
                     await userdb.updateOne(
                     { email: user.email },
-                    {$set: {access_token: await jwt.getAuthToken(user)}},
-                    {$set: {refresh_token: await jwt.getRefreshToken(user)}}
-                    );
-                    //console.log(user);
+                    {$set: {access_token: await jwt.getAuthToken(user)}});
+                    await userdb.updateOne(
+                        { email: user.email },
+                        {$set: {refresh_token: await jwt.getRefreshToken(user)}});
                     c.response.status = 200;
                     return c.json({ error: false, message: "L'utilisateur a été authentifié succès", user });
                 }
@@ -194,16 +196,18 @@ export class UsersControllers {
                     pass,
                     data.dateNaissance,
                     );
+                    const count = await userdb.count({ idparent: userParent._id});
+                    const nbenfant = (count > 3 ) ? c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" }) : 
                     await User.insert();
                     await userdb.updateOne(
                     { email: User.email },
-                    {$set: {idparent: userParent._id}},
+                    {$set: {idparent: new Bson.ObjectId(userParent._id)}},
                     );
-                User.setRole('Enfant');
-                console.log(User.email);
-
+                    User.setRole('Enfant');
+                    console.log(userParent._id);
+                    console.log(User.idparent);
                 c.response.status = 200;
-                return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",userParent});
+                return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",User});
             }    
         }catch (err){
             c.response.status = 401;

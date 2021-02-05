@@ -8,8 +8,6 @@ const {
     EMAIL_USER,
     EMAIL_PASSWORD
 } = config;
-console.log(EMAIL_USER);
-console.log(EMAIL_PASSWORD);
 
  export const smtpconnect = async (email: string)=>{
     const client = new SmtpClient();

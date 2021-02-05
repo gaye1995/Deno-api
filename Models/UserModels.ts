@@ -5,6 +5,7 @@ import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
 import { ObjectId } from "https://deno.land/x/mongo@v0.20.1/src/utils/bson.ts";
+import { BSONRegExp } from "https://deno.land/x/mongo@v0.20.1/bson/bson.d.ts";
 
 export class UserModels extends UserDB implements UserInterfaces {
 
@@ -19,10 +20,15 @@ export class UserModels extends UserDB implements UserInterfaces {
     access_token:string;
     refresh_token:string;
     phoneNumber ? : string;
-    subscription?:subscriptionTypes = 0;
-    idparent:  Bson.ObjectId ;
+    subscription?:subscriptionTypes;
+   idparent: Bson.ObjectId ;
+   nbConnexion :number;
+   createdAt: Date;
+   updatedAt : Date;
+
     constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaissance: string) {
         super();
+        this._role = 'Tuteur';
         this.firstname = prenom;
         this.lastname = nom;
         this.email = email;
@@ -31,7 +37,11 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.dateNaissance = new Date(dateNaissance);
         this.access_token  = '';
         this.refresh_token = '';
-        this.idparent = new Bson.ObjectId(this.id);
+        this.idparent = new Bson.ObjectId;
+        this.subscription = 0;
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
+        this.nbConnexion = 0;
 
     }
 
@@ -56,8 +66,7 @@ export class UserModels extends UserDB implements UserInterfaces {
         return `${this.lastname} ${this.firstname}`;
     }
     async insert(): Promise < void > {
-        this.password = await hash(this.password);
-        this.email = await this.userdb.insertOne({
+        const insertusers = await this.userdb.insertOne({
             role: this._role,
             firstname: this.firstname,
             lastname: this.lastname,
@@ -70,6 +79,9 @@ export class UserModels extends UserDB implements UserInterfaces {
             access_token: this.access_token ,
             refresh_token: this.refresh_token ,
             idparent :  this.idparent,
+            createdAt : this.createdAt,
+            updatedAt : this.updatedAt,
+            nbConnexion : this.nbConnexion,
 
         });
     }
@@ -92,6 +104,12 @@ export class UserModels extends UserDB implements UserInterfaces {
         const { modifiedCount } = await this.userdb.updateOne(
             { email: this.userdb.email },
             { $set: {idparent : parent} }
+          ); 
+       }
+    async updatetoken(refresh:string): Promise < any > {
+        const { modifiedCount } = await this.userdb.updateOne(
+            { email: this.userdb.email },
+            { $set: {refresh_token : refresh} }
           ); 
        }
 }
