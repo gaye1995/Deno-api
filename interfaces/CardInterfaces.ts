@@ -6,6 +6,7 @@ export default interface CardInterfaces {
     month: Date;
     year: Date;
     Default: string;
+    idUsers : string;
     createdAt: Date;
     updatedAt : Date;
     

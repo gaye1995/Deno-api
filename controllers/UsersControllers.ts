@@ -42,6 +42,7 @@ export class UsersControllers {
                 console.log(data.firstname);
                 const pass = await PasswordException.hashPassword(data.password);
                 const User = new UserModels(
+                    'Tuteur',
                     data.firstname,
                     data.lastname,
                     data.email,
@@ -101,10 +102,7 @@ export class UsersControllers {
 
       
     }
-    static deleteuser: HandlerFunc = async(c: Context) => {
-
-      
-    } /*
+  /*
    static subscription: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
@@ -177,21 +175,18 @@ export class UsersControllers {
             else{
                    const pass = await PasswordException.hashPassword(data.password);
                    const User = new UserModels(
+                    'Enfant',
                     data.firstname,
                     data.lastname,
                     data.email,
                     data.sexe,
                     pass,
                     data.dateNaissance,
+                    userParent._id
                     );
                     const count = await userdb.count({ idparent: userParent._id});
                     const nbenfant = (count > 3 ) ? c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" }) : 
                     await User.insert();
-                    await userdb.updateOne(
-                    { email: User.email },
-                    {$set: {idparent: new Bson.ObjectId(userParent._id)}},
-                    );
-                    User.setRole('Enfant');
                     console.log(userParent._id);
                     console.log(User.idparent);
 
@@ -204,6 +199,17 @@ export class UsersControllers {
         }
 }
 
+static deleteuser: HandlerFunc = async(c: Context) => {
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+    const authorization: any = c.request.headers.get("authorization");
+    if(authorization){
+        const token = await getToken(authorization);
+        const data = await getJwtPayload(token);
+        let email  = data.email;
+    }else {
 
+    }
+}
     
 }

@@ -14,7 +14,7 @@ export default interface UserInterfaces {
     subscription?:number;
     access_token: string;
     refresh_token: string;
-    idparent : Bson.ObjectId;
+    idparent? : { $oid: string } | string;
     nbConnexion: number;
 
     createdAt: Date;

@@ -21,14 +21,14 @@ export class UserModels extends UserDB implements UserInterfaces {
     refresh_token:string;
     phoneNumber ? : string;
     subscription?:subscriptionTypes;
-   idparent: Bson.ObjectId ;
+   idparent?: { $oid: string } | string ;
    nbConnexion :number;
    createdAt: Date;
    updatedAt : Date;
 
-    constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaissance: string) {
+    constructor(role: roleTypes,prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaissance: string,idparent? : string) {
         super();
-        this._role = 'Tuteur';
+        this._role = role;
         this.firstname = prenom;
         this.lastname = nom;
         this.email = email;
@@ -37,12 +37,13 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.dateNaissance = new Date(dateNaissance);
         this.access_token  = '';
         this.refresh_token = '';
-        this.idparent = new Bson.ObjectId;
         this.subscription = 0;
         this.createdAt = new Date();
         this.updatedAt = new Date();
         this.nbConnexion = 0;
-
+        if(this.role === 'Enfant'){
+            this.idparent = idparent
+        }
     }
 
     
@@ -66,7 +67,7 @@ export class UserModels extends UserDB implements UserInterfaces {
         return `${this.lastname} ${this.firstname}`;
     }
     async insert(): Promise < void > {
-        const insertusers = await this.userdb.insertOne({
+        const toinsert = {
             role: this._role,
             firstname: this.firstname,
             lastname: this.lastname,
@@ -78,12 +79,16 @@ export class UserModels extends UserDB implements UserInterfaces {
             subscription: this.subscription ,
             access_token: this.access_token ,
             refresh_token: this.refresh_token ,
-            idparent :  this.idparent,
             createdAt : this.createdAt,
             updatedAt : this.updatedAt,
             nbConnexion : this.nbConnexion,
 
-        });
+        }
+        if(this.role === 'Enfant')
+        {
+            Object.assign(toinsert, { idparent: this.idparent });
+        }
+        await this.userdb.insertOne(toinsert);
     }
     async update(update: userUpdateTypes) {
         const { modifiedCount } = await this.userdb.updateOne(
