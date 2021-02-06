@@ -13,13 +13,14 @@ import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../middlewares/jwt-middleware.ts";
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 import {smtpconnect} from '../helpers/mails.ts'
+import { subsstripe } from '../utils/stripe.ts';
+
 export class UsersControllers {
 
     static register: HandlerFunc = async(c: Context) => {
 
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
-
             try {
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
@@ -48,13 +49,8 @@ export class UsersControllers {
                     pass,
                     data.dateNaissance,
                     );
-                    console.log(data.firstname);
-                    console.log(data.lastname);
-                    console.log(data.email);
-                    console.log(pass);
-                    console.log(data.dateNaissance);
                 await User.insert();
-               await smtpconnect(User.email);
+                await smtpconnect(User.email);
                 c.response.status = 201;
                 return c.json({ error: false, message: "L'utilisateur a bien été créé avec succès",User});
             }
@@ -87,7 +83,6 @@ export class UsersControllers {
                     return c.json({ error: false, message: 'Email/password incorrect' });
                 }*/
                 else {
-                    //console.log(user.email);
                     await userdb.updateOne(
                     { email: user.email },
                     {$set: {access_token: await jwt.getAuthToken(user)}});
@@ -97,7 +92,7 @@ export class UsersControllers {
                     c.response.status = 200;
                     return c.json({ error: false, message: "L'utilisateur a été authentifié succès", user });
                 }
-            }catch (err) {
+            }catch (err){
                 c.response.status = 401;
                 return { error: true, message: err.message };
             }
@@ -109,8 +104,8 @@ export class UsersControllers {
     static deleteuser: HandlerFunc = async(c: Context) => {
 
       
-    } 
-   /* static subscription: HandlerFunc = async(c: Context) => {
+    } /*
+   static subscription: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
         const authorization: any = c.request.headers.get("authorization");
@@ -118,15 +113,15 @@ export class UsersControllers {
             const token = await getToken(authorization);
             const data = await getJwtPayload(token);
             let email  = data.email;
-            console.log(data.email); 
             if(!token){
                 return c.json({ error: true, message: "Votre token n'est pas correct" });
             }
             const dataCard:any = await c.body;
-           const userclient = stripe.customers.create({
+            
+             const userclient = stripe.customers.create({
                 email: data.email
             });
-           if(userclient){
+          if(userclient){
                stripe.charge.create({
                 amount: 1000 ,// en centimes, 
                devise: 'usd', 
@@ -138,10 +133,6 @@ export class UsersControllers {
                } 
            })
         }
-
-
-
-
             const user = await userdb.findOne({email});
 
             //console.log(user.subscription);
@@ -152,11 +143,8 @@ export class UsersControllers {
             if(modifiedCount){
                 c.json({Error: false, message: "Votre abonnement a bien été mise à jour"});
             }
-
-             
             return c.json(user);
-        }
-       
+        }    
       
     }*/
 
@@ -206,6 +194,7 @@ export class UsersControllers {
                     User.setRole('Enfant');
                     console.log(userParent._id);
                     console.log(User.idparent);
+
                 c.response.status = 200;
                 return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",User});
             }    
@@ -214,6 +203,7 @@ export class UsersControllers {
             return c.json({ error: true, message: err.message });
         }
 }
-       
+
+
     
 }
