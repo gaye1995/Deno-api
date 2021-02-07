@@ -27,4 +27,3 @@ app.router = router;
 // deno run --allow-net --allow-read --unstable server.ts
 app.start({ port });
 console.log('app listening on port ' + port);
-console.log(STRIPE_PUBLIC_KEY);

@@ -16,8 +16,6 @@ router.add(HttpMethod.Post, '/user/cart',CartControllers.usercart)
 
 /*import { Router } from "https://deno.land/x/oak/mod.ts";
 import {UsersControllers} from '../controllers/UsersControllers.ts';
-
-
 router.post("/login",UsersControllers.login);
 */
   export { router }

@@ -6,7 +6,7 @@ import { config } from '../config/config.ts';
 
 const getToken =async (authHeader: any) =>{
         try{
-            return await authHeader.replace(/^bearer/i, "").trim();   
+            return await authHeader.replace(/^Bearer/i, "").trim();   
         }catch
         {
             return false;

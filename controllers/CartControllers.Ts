@@ -14,24 +14,26 @@ import { getJwtPayload } from "../middlewares/jwt-middleware.ts";
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 import {verifyCart} from '../middlewares/cart-middlewares.ts'
 import { subsstripe } from '../utils/stripe.ts';
-import { smtpconnect } from "../helpers/mails.ts";
+import { mailajoutCart } from "../helpers/mails.ts";
 export class CartControllers {
 
 static usercart: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
+    let cartdb = _userdb.cartdb;
     const authorization: any = c.request.headers.get("authorization");
     if(authorization){
         const token = await getToken(authorization);
         const data = await getJwtPayload(token);
         const users : any = await userdb.findOne({email: data.email});
         const datacart : any = await c.body;
-        const cart : any = await userdb.findOne({cart: datacart.cart})
+        console.log(users.email);
+        const cart : any = await cartdb.findOne({cart: datacart.cartNumber})
         if(!token)
         {
             c.response.status = 401;
            return c.json({ error: true, message: "Votre token n'est pas correct" })
-        }else if(verifyCart(cart)){
+        }else if(!cart){
             c.response.status = 402;
             return c.json({ error: true, message: "Informations bancaire incorrectes" });
         }else if(cart){
@@ -44,13 +46,14 @@ static usercart: HandlerFunc = async(c: Context) => {
             const carthash = await PasswordException.hashPassword(datacart.cartNumber);
             const carte : any = new cardModels(
                 carthash,
-                datacart.month.getMonth(),
-                datacart.year.getFullYear(),
-                datacart.default,
+                datacart.month,
+                datacart.year,
                 users._id);
-            
+            console.log(carte);
         await carte.insert();
-        await smtpconnect(users.email);
+        await mailajoutCart(users.email);
+        console.log(users._id);
+        return c.json({ error: false, message: "Vos données ont été mises à jour", carte })
         }
     
     
