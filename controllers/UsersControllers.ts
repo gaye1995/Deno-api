@@ -90,11 +90,8 @@ export class UsersControllers {
                     await userdb.updateOne(
                         { email: user.email },
                         {$set: {refresh_token: await jwt.getRefreshToken(user)}});
-                        console.log(await jwt.getAuthToken(user));
-                        console.log(user.access_token);
-
-                    c.response.status = 200;
-                    return c.json({ error: false, message: "L'utilisateur a été authentifié succès", user });
+                c.response.status = 200;
+                return c.json({ error: false, message: "L'utilisateur a été authentifié succès", status : 200 , user });
                 }
             }catch (err){
                 c.response.status = 401;
@@ -150,19 +147,18 @@ export class UsersControllers {
     }*/
 
     static userchild: HandlerFunc = async(c: Context) => {
-        console.log('ok');
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
         try {
         const authorization: any = c.request.headers.get("authorization");
             const token = await getToken(authorization);
-            console.log(token);
             const dataparent = await getJwtPayload(token);
-
-            console.log(dataparent)
             const userParent: any = await userdb.findOne({ email: dataparent.email })
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
+            console.log(user.firstname);
+            console.log(data.firstname);
+
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaiss=="" || data.sexe==""){
                 c.response.status = 400;
                 return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
@@ -176,11 +172,10 @@ export class UsersControllers {
             }else if(user){
                 c.response.status = 409;
                 return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
-            //}else if(user.count({idparent: userdb._id}) <=3){
-               // c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
+            }else if(userdb.count({idparent: userParent._id}) > 3){
+               c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
             }
             else{
-                console.log(data.email);
                    const pass = await PasswordException.hashPassword(data.password);
                    const User = new UserModels(
                     'Enfant',
@@ -192,12 +187,9 @@ export class UsersControllers {
                     data.dateNaissance,
                     userParent._id
                     );
-                    const count = await userdb.count({ idparent: userParent._id});
-                    const nbenfant = (count > 3 ) ? c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" }) : 
+                    const nbenfant = await userdb.count({ idparent: userParent._id});
+                    (nbenfant > 3 ) ? c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" }) : 
                     await User.insert();
-                    console.log(userParent._id);
-                    console.log(User.email);
-
                 c.response.status = 200;
                 return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",User});
             }    
