@@ -98,10 +98,7 @@ export class UsersControllers {
                 return { error: true, message: err.message };
             }
     }
-    static modifuser: HandlerFunc = async(c: Context) => {
-
-      
-    }
+  
   
    static subscription: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
@@ -137,11 +134,9 @@ export class UsersControllers {
         const authorization: any = c.request.headers.get("authorization");
             const token = await getToken(authorization);
             const dataparent = await getJwtPayload(token);
-            const userParent: any = await userdb.findOne({ email: dataparent.email })
+            const userParent: any = await userdb.findOne({ email: dataparent.email });
             const data : any = await c.body;
-            const user: any = await userdb.findOne({ email: data.email })
-            console.log(user.email);
-
+            const user1: any = await userdb.findOne({ email: data.email });
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaiss=="" || data.sexe==""){
                 c.response.status = 400;
                 return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
@@ -152,13 +147,15 @@ export class UsersControllers {
             {
                 c.response.status = 409;
                 return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
-            }else if(user){
+            }else if(user1){
+                console.log(user1.email);
                 c.response.status = 409;
                 return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
-            }else if(userdb.count({idparent: userParent._id}) > 3){
+            }else if((await userdb.count({idparent: userParent._id})) >= 3){
                c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
             }
             else{
+                console.log(await userdb.count({idparent: userParent._id}));
                    const pass = await PasswordException.hashPassword(data.password);
                    const User = new UserModels(
                     'Enfant',
