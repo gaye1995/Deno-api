@@ -1,6 +1,6 @@
 
 import { UserDB } from './../db/UserDB.ts';
-import * as jwt from '../helpers/jwt.ts';
+import * as jwt from '../middlewares/jwt-middleware.ts';
 import { UserModels } from '../Models/UserModels.ts';
 import { roleTypes } from '../types/rolesTypes.ts';
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
@@ -10,20 +10,21 @@ import EmailException from '../exception/EmailException.ts';
 import { Get } from "https://deno.land/x/abc@v1.2.4/_http_method.ts";
 import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
 import {getToken} from '../middlewares/jwt-middleware.ts'
-import { getJwtPayload } from "../helpers/jwt.ts";
-import { ChildsModels } from "../Models/ChildsModels.ts";
+import { getJwtPayload } from "../middlewares/jwt-middleware.ts";
 import { Bson } from "https://deno.land/x/bson/mod.ts";
-import {smtpconnect} from '../helpers/mails.ts'
+import {mailRegister} from '../helpers/mails.ts'
+import { subsstripe } from '../utils/stripe.ts';
+
 export class UsersControllers {
 
     static register: HandlerFunc = async(c: Context) => {
 
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
-
             try {
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
+            console.log(data.email);
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaissance==""){
                 c.response.status = 400;
                 return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
@@ -41,6 +42,7 @@ export class UsersControllers {
                 console.log(data.firstname);
                 const pass = await PasswordException.hashPassword(data.password);
                 const User = new UserModels(
+                    'Tuteur',
                     data.firstname,
                     data.lastname,
                     data.email,
@@ -48,10 +50,8 @@ export class UsersControllers {
                     pass,
                     data.dateNaissance,
                     );
-                    console.log(data.firstname);
-
                 await User.insert();
-              // await smtpconnect(User.email);
+                await mailRegister(User.email);
                 c.response.status = 201;
                 return c.json({ error: false, message: "L'utilisateur a bien été créé avec succès",User});
             }
@@ -84,31 +84,23 @@ export class UsersControllers {
                     return c.json({ error: false, message: 'Email/password incorrect' });
                 }*/
                 else {
-                    console.log(user);
-                    console.log(await jwt.getRefreshToken(user));
                     await userdb.updateOne(
                     { email: user.email },
-                    {$set: {access_token: await jwt.getAuthToken(user)}},
-                    {$set: {refresh_token: await jwt.getRefreshToken(user)}}
-                    );
-                    //console.log(user);
-                    c.response.status = 200;
-                    return c.json({ error: false, message: "L'utilisateur a été authentifié succès", user });
+                    {$set: {access_token: await jwt.getAuthToken(user)}});
+                    await userdb.updateOne(
+                        { email: user.email },
+                        {$set: {refresh_token: await jwt.getRefreshToken(user)}});
+                c.response.status = 200;
+                return c.json({ error: false, message: "L'utilisateur a été authentifié succès", status : 200 , user });
                 }
-            }catch (err) {
+            }catch (err){
                 c.response.status = 401;
                 return { error: true, message: err.message };
             }
     }
-    static modifuser: HandlerFunc = async(c: Context) => {
-
-      
-    }
-    static deleteuser: HandlerFunc = async(c: Context) => {
-
-      
-    } 
-   /* static subscription: HandlerFunc = async(c: Context) => {
+  
+  
+   static subscription: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
         const authorization: any = c.request.headers.get("authorization");
@@ -116,33 +108,13 @@ export class UsersControllers {
             const token = await getToken(authorization);
             const data = await getJwtPayload(token);
             let email  = data.email;
-            console.log(data.email); 
             if(!token){
                 return c.json({ error: true, message: "Votre token n'est pas correct" });
             }
-            const dataCard:any = await c.body;
-           const userclient = stripe.customers.create({
-                email: data.email
-            });
-           if(userclient){
-               stripe.charge.create({
-                amount: 1000 ,// en centimes, 
-               devise: 'usd', 
-               source: 'STRIPE_TOKEN_FROM_CLIENT', 
-               description: 'Any description about the payment', 
-               metadata: { 
-                   idcard: dataCard.idcard,
-                   cvc: dataCard.cvc  // any meta-data you voulez stocker 
-               } 
-           })
-        }
-
-
-
-
+            
+         
+        
             const user = await userdb.findOne({email});
-
-            //console.log(user.subscription);
            const { modifiedCount } = await userdb.updateOne(
                 { email: data.email },
                 { $set: user.subscription = 1 },
@@ -150,13 +122,10 @@ export class UsersControllers {
             if(modifiedCount){
                 c.json({Error: false, message: "Votre abonnement a bien été mise à jour"});
             }
-
-             
             return c.json(user);
-        }
-       
+        }    
       
-    }*/
+    }
 
     static userchild: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
@@ -165,9 +134,9 @@ export class UsersControllers {
         const authorization: any = c.request.headers.get("authorization");
             const token = await getToken(authorization);
             const dataparent = await getJwtPayload(token);
-            const userParent: any = await userdb.findOne({ email: dataparent.email })
+            const userParent: any = await userdb.findOne({ email: dataparent.email });
             const data : any = await c.body;
-            const user: any = await userdb.findOne({ email: data.email })
+            const user1: any = await userdb.findOne({ email: data.email });
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaiss=="" || data.sexe==""){
                 c.response.status = 400;
                 return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
@@ -178,62 +147,49 @@ export class UsersControllers {
             {
                 c.response.status = 409;
                 return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
-            }else if(user){
+            }else if(user1){
+                console.log(user1.email);
                 c.response.status = 409;
                 return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
-            //}else if(user.count({idparent: userdb._id}) <=3){
-               // c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
+            }else if((await userdb.count({idparent: userParent._id})) >= 3){
+               c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
             }
             else{
+                console.log(await userdb.count({idparent: userParent._id}));
                    const pass = await PasswordException.hashPassword(data.password);
                    const User = new UserModels(
+                    'Enfant',
                     data.firstname,
                     data.lastname,
                     data.email,
                     data.sexe,
                     pass,
                     data.dateNaissance,
+                    userParent._id
                     );
+                    const nbenfant = await userdb.count({ idparent: userParent._id});
+                    (nbenfant > 3 ) ? c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" }) : 
                     await User.insert();
-                    await userdb.updateOne(
-                    { email: User.email },
-                    {$set: {idparent: userParent._id}},
-                    );
-                User.setRole('Enfant');
-                console.log(User.email);
-
                 c.response.status = 200;
-                return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",userParent});
+                return c.json({ error: false, message: "Votre enfant a bien été créé avec succès",User});
             }    
         }catch (err){
             c.response.status = 401;
             return c.json({ error: true, message: err.message });
         }
-    }
-    // Route 8 => Delete new child user
-    static deleteUserChild: HandlerFunc = async(c: Context) => {
-        let _userdb: UserDB = new UserDB();
-        let userdb = _userdb.userdb;
-
-        let { email }: any = c.request.body;
-        try{
-            if(!userdb || !userdb.id || !email){
-                c.response.status = 403;
-                return { error: false, message: 'Votre droits d\'accès  ne permettent  pas d\'accèder à la ressource' };
-            }
-            const user = await userdb.deleteOne({email: email.email}); 
-            await userdb.deleteOne(user);
-            c.response.status = 200;
-            return { error: false, message: "l'utilisateur a bien été supprimé avec succés"};
-        
-        }
-        catch (err) {
-            c.response.status = 401;
-            return { error: true, message: "Votre token n\'est pas correct" };
-        }
-    }  
-
 }
-       
+
+static deleteuser: HandlerFunc = async(c: Context) => {
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+    const authorization: any = c.request.headers.get("authorization");
+    if(authorization){
+        const token = await getToken(authorization);
+        const data = await getJwtPayload(token);
+        let email  = data.email;
+    }else {
+
+    }
+}
     
 }

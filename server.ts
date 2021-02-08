@@ -5,8 +5,11 @@ import { UsersControllers } from './controllers/UsersControllers.ts';
 import {TokenMidd} from './middlewares/auth.middleware.ts'
 import { SmtpClient } from "https://deno.land/x/smtp/mod.ts";
 import { config } from './config/config.ts';
-
-
+import {subsstripe} from './utils/stripe.ts';
+const {
+  STRIPE_SECRET_KEY,
+  STRIPE_PUBLIC_KEY,
+} = config;
 //const client = new SmtpClient();
 const {
     EMAIL_USER,
