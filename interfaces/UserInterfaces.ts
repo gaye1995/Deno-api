@@ -15,8 +15,9 @@ export default interface UserInterfaces {
     access_token: string;
     refresh_token: string;
     idparent? : { $oid: string } | string;
-    nbConnexion?: number;
-
+    loginAttempts :number;
+    lockUntil :number;
+ 
     createdAt: Date;
     updatedAt : Date;
   

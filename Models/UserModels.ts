@@ -22,7 +22,9 @@ export class UserModels extends UserDB implements UserInterfaces {
     phoneNumber ? : string;
     subscription?:subscriptionTypes;
    idparent?: { $oid: string } | string ;
-   nbConnexion :number;
+   loginAttempts :number;
+   lockUntil :number;
+
    createdAt: Date;
    updatedAt : Date;
 
@@ -40,7 +42,8 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.subscription = 0;
         this.createdAt = new Date();
         this.updatedAt = new Date();
-        this.nbConnexion = 0;
+        this.loginAttempts = 0;
+        this.lockUntil = 0;
         if(this.role === 'Enfant'){
             this.idparent = idparent
         }
@@ -81,8 +84,9 @@ export class UserModels extends UserDB implements UserInterfaces {
             refresh_token: this.refresh_token ,
             createdAt : this.createdAt,
             updatedAt : this.updatedAt,
-            nbConnexion : this.nbConnexion,
-
+            loginAttempts :this.loginAttempts,
+            lockUntil :this.lockUntil,
+         
         }
         if(this.role === 'Enfant')
         {
@@ -117,4 +121,5 @@ export class UserModels extends UserDB implements UserInterfaces {
             { $set: {refresh_token : refresh} }
           ); 
        }
+      
 }

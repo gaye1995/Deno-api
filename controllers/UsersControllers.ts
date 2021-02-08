@@ -2,7 +2,6 @@
 import { UserDB } from './../db/UserDB.ts';
 import * as jwt from '../middlewares/jwt-middleware.ts';
 import { UserModels } from '../Models/UserModels.ts';
-import { roleTypes } from '../types/rolesTypes.ts';
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
 import { Context } from 'https://deno.land/x/abc@v1.2.4/context.ts';
 import PasswordException from '../exception/PasswordException.ts';
@@ -13,7 +12,7 @@ import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../middlewares/jwt-middleware.ts";
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 import {mailRegister} from '../helpers/mails.ts'
-import { subsstripe } from '../utils/stripe.ts';
+import {incLoginAttempts} from '../utils/maxlock.ts'
 
 export class UsersControllers {
 
@@ -65,7 +64,6 @@ export class UsersControllers {
 
             let _userdb: UserDB = new UserDB();
             let userdb = _userdb.userdb;
-
             let data : any = await c.body;
             try {
                 const user: any = await userdb.findOne({ email: data.email })
@@ -78,8 +76,9 @@ export class UsersControllers {
                     return c.json({ error: true, message: "Email/password incorrect" });
                 }
                 //test nombre de tentatives
-            /*  else if( )
+                /*else if(incLoginAttempts(user))
                 {
+                    console.log(incLoginAttempts(user));
                     c.response.status = 400;
                     return c.json({ error: false, message: 'Email/password incorrect' });
                 }*/
@@ -98,35 +97,6 @@ export class UsersControllers {
                 return { error: true, message: err.message };
             }
     }
-  
-  
-   static subscription: HandlerFunc = async(c: Context) => {
-        let _userdb: UserDB = new UserDB();
-        let userdb = _userdb.userdb;
-        const authorization: any = c.request.headers.get("authorization");
-        if(authorization){
-            const token = await getToken(authorization);
-            const data = await getJwtPayload(token);
-            let email  = data.email;
-            if(!token){
-                return c.json({ error: true, message: "Votre token n'est pas correct" });
-            }
-            
-         
-        
-            const user = await userdb.findOne({email});
-           const { modifiedCount } = await userdb.updateOne(
-                { email: data.email },
-                { $set: user.subscription = 1 },
-                { $set: user.role = "Parent" } );
-            if(modifiedCount){
-                c.json({Error: false, message: "Votre abonnement a bien été mise à jour"});
-            }
-            return c.json(user);
-        }    
-      
-    }
-
     static userchild: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
