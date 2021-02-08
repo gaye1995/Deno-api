@@ -102,7 +102,7 @@ export class UsersControllers {
 
       
     }
-  /*
+  
    static subscription: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
@@ -114,26 +114,10 @@ export class UsersControllers {
             if(!token){
                 return c.json({ error: true, message: "Votre token n'est pas correct" });
             }
-            const dataCard:any = await c.body;
             
-             const userclient = stripe.customers.create({
-                email: data.email
-            });
-          if(userclient){
-               stripe.charge.create({
-                amount: 1000 ,// en centimes, 
-               devise: 'usd', 
-               source: 'STRIPE_TOKEN_FROM_CLIENT', 
-               description: 'Any description about the payment', 
-               metadata: { 
-                   idcard: dataCard.idcard,
-                   cvc: dataCard.cvc  // any meta-data you voulez stocker 
-               } 
-           })
-        }
+         
+        
             const user = await userdb.findOne({email});
-
-            //console.log(user.subscription);
            const { modifiedCount } = await userdb.updateOne(
                 { email: data.email },
                 { $set: user.subscription = 1 },
@@ -144,7 +128,7 @@ export class UsersControllers {
             return c.json(user);
         }    
       
-    }*/
+    }
 
     static userchild: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
@@ -156,8 +140,7 @@ export class UsersControllers {
             const userParent: any = await userdb.findOne({ email: dataparent.email })
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
-            console.log(user.firstname);
-            console.log(data.firstname);
+            console.log(user.email);
 
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaiss=="" || data.sexe==""){
                 c.response.status = 400;
