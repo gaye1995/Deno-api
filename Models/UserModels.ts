@@ -6,6 +6,7 @@ import { Bson } from "https://deno.land/x/bson/mod.ts";
 import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
 import { ObjectId } from "https://deno.land/x/mongo@v0.20.1/src/utils/bson.ts";
 import { BSONRegExp } from "https://deno.land/x/mongo@v0.20.1/bson/bson.d.ts";
+import { cardModels } from "./CardModels.ts";
 
 export class UserModels extends UserDB implements UserInterfaces {
 
@@ -21,6 +22,7 @@ export class UserModels extends UserDB implements UserInterfaces {
     refresh_token:string;
     phoneNumber ? : string;
     subscription?:subscriptionTypes;
+    cart? : cardModels ; 
    idparent?: { $oid: string } | string ;
    loginAttempts :number;
    lockUntil :number;
@@ -28,7 +30,7 @@ export class UserModels extends UserDB implements UserInterfaces {
    createdAt: Date;
    updatedAt : Date;
 
-    constructor(role: roleTypes,prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaissance: string,idparent? : string) {
+    constructor(role: roleTypes,prenom: string, nom: string, email:string,sexe:string, password: string,  dateNaissance: Date,idparent? : string) {
         super();
         this._role = role;
         this.firstname = prenom;
@@ -80,6 +82,7 @@ export class UserModels extends UserDB implements UserInterfaces {
             dateNaissance: this.dateNaissance,
             phoneNumber: this.phoneNumber,
             subscription: this.subscription ,
+            cart : this.cart,
             access_token: this.access_token ,
             refresh_token: this.refresh_token ,
             createdAt : this.createdAt,

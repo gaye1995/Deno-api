@@ -13,7 +13,7 @@ export class UserDB{
     
     constructor(){
         this.userdb = db.collection<UserInterfaces>("users");
-        this.cartdb = db.collection<CardInterfaces>("cart");
+        //this.cartdb = db.collection<CardInterfaces>("cart");
     }
 
 }

@@ -9,10 +9,11 @@ const router = new Router();
 
 router.add(HttpMethod.Post, '/register', UsersControllers.register);
 router.add(HttpMethod.Post, '/login', UsersControllers.login);
-//router.add(HttpMethod.Post, '/user', UsersControllers.modifuser);
 router.add(HttpMethod.Put, '/subscription',StripeControllers.subsstripe)
 router.add(HttpMethod.Post, '/user/child',UsersControllers.userchild)
 router.add(HttpMethod.Post, '/user/cart',CartControllers.usercart)
+router.add(HttpMethod.Delete, '/user', UsersControllers.deleteuser);
+
 
 
 /*import { Router } from "https://deno.land/x/oak/mod.ts";
