@@ -10,15 +10,16 @@ import { BSONRegExp } from "https://deno.land/x/mongo@v0.20.1/bson/bson.d.ts";
 export class SongModels extends UserDB implements SongInterfaces {
 
     id :{ $oid: string }|null = null;
-    name: string;
-    url: string;
-    cover: string;
-    type: string;
+    name?: string;
+    url?: string;
+    cover?: string;
+    type?: string;
     createdAt: Date;
     updatedAt : Date;
 
-    constructor(name: string, url: string, type: string, cover: string) {
+    constructor(id:{ $oid: string },name?: string, url?: string, type?: string, cover?: string) {
         super();
+        this.id = id,
         this.name = name;
         this.url = url;
         this.cover = cover;

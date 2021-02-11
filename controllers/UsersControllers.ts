@@ -6,11 +6,10 @@ import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
 import { Context } from 'https://deno.land/x/abc@v1.2.4/context.ts';
 import PasswordException from '../exception/PasswordException.ts';
 import EmailException from '../exception/EmailException.ts';
-import { Get } from "https://deno.land/x/abc@v1.2.4/_http_method.ts";
+import { hashSync, compareSync } from "https://deno.land/x/bcrypt@v0.2.1/mod.ts";
 import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
 import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../middlewares/jwt-middleware.ts";
-import { Bson } from "https://deno.land/x/bson/mod.ts";
 import {mailRegister} from '../helpers/mails.ts'
 import {incLoginAttempts} from '../utils/maxlock.ts'
 
@@ -67,16 +66,25 @@ export class UsersControllers {
             let data : any = await c.body;
             try {
                 const user: any = await userdb.findOne({ email: data.email })
+                
+               /* let idco = setInterval(() => {(user.password);}, 500);
+                if(idco){
+                    idco = idco +1
+                    console.log(idco);
+                }*/
+                //console.log(idco);
                 if(data.email == '' || data.password == ''){
                     c.response.status = 400;
                     return c.json({ error: true, message: "Email/password manquants" });
+                }else if(!(compareSync(data.password, user.password))){
+                    return c.json({status:400, error: true, message: "password incorrect" });
                 }
-                else if(!user || !PasswordException.comparePassword(data.password, user.password)){
+               /* else if(!user || !PasswordException.comparePassword(data.password, user.password)){
                     c.response.status = 400;
                     return c.json({status:400, error: true, message: "Email/password incorrect" });
-                }
+                }*/
                 //test nombre de tentatives
-                /*else if(incLoginAttempts(user))
+               /* else if(incLoginAttempts(user))
                 {
                     console.log(incLoginAttempts(user));
                     c.response.status = 400;

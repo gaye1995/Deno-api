@@ -1,4 +1,4 @@
-import { hash, compare } from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
+import { hash, compare, compareSync } from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 
 export default class PasswordException extends Error {
 
@@ -18,7 +18,7 @@ export default class PasswordException extends Error {
     }
 
     public static async comparePassword(password: string, hash: string): Promise < boolean > {
-        return await compare(password, hash)
+        return await compareSync(password, hash)
     }
 
 }

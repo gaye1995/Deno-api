@@ -14,6 +14,6 @@ router.add(HttpMethod.Put, '/subscription',StripeControllers.subsstripe)
 router.add(HttpMethod.Post, '/user/child',UsersControllers.userchild)
 router.add(HttpMethod.Post, '/user/cart',CartControllers.usercart)
 router.add(HttpMethod.Delete, '/user', UsersControllers.deleteuser);
-router.add(HttpMethod.Get, '/user/{id}', SongControllers.song);
+//router.add(HttpMethod.Get, '/user/{id}', SongControllers.song);
 
   export { router }

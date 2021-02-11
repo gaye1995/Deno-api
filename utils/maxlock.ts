@@ -8,19 +8,27 @@ export const incLoginAttempts = (user:any)=> {
     const SALT_WORK_FACTOR = 10;
     const MAX_LOGIN_ATTEMPTS = 5;
     const LOCK_TIME = 1 * 60 * 1000;
-    console.log(user.lockUntil);
 
     userdb.virtual('isLocked').get(()=> {
         // recherche un futur verrou
-        return !! ( user.lockUntil  &&  user.lockUntil  >  Date . now ( ) ) ;
-      } ) ;
-    // if we have a previous lock that has expired, restart at 1
-    if (user.lockUntil && user.lockUntil < Date.now()) {
+        return !! (user.lockUntil  &&  user.lockUntil  >  Date.now() ) ;
+      });
+      console.log(user.lockUntil);
       const { modifiedCount } = user.updateOne(
         {email: user.email},
         {$set: { loginAttempts: 1 }},
         {$unset: { lockUntil: 1 }}
       );
+      console.log(user.lockUntil);
+      console.log(user.loginAttempts);
+    // if we have a previous lock that has expired, restart at 1
+    if (user.lockUntil && user.lockUntil < Date.now()) {
+      const { modifiedCount } = user.updateOne(
+        {email: user.email},
+        {$set: { loginAttempts: 1 }},
+        //{$unset: { lockUntil: 1 }}
+      );
+      //console.log(user.lockUntil);
       return modifiedCount;
     }
   
