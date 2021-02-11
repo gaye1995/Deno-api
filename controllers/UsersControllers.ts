@@ -152,7 +152,27 @@ export class UsersControllers {
             return c.json({ status:401,error: true, message: err.message });
         }
 }
-
+static deleteuserchild: HandlerFunc = async(c: Context) => {
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+    const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
+        const data = await getJwtPayload(token);
+        const user: any = await userdb.findOne({ email: data.email });
+        console.log(user.email);
+        if(!authorization && await getJwtPayload(token)){
+            return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+        }else if(!user.idparent && !user.id){
+            return c.json({status: 403, error: true, message: "Vous ne pouvez pas supprimer cet enfant" });
+        }
+        const deleteCount = await userdb.deleteOne({ _id: user._id });
+        if(!deleteCount){
+            return c.json({ status : 200,error: false, message: "Votre compte n'a pas été supprimés avec succès" });
+        }else{
+            return c.json({ status : 200,error: false, message: "L'utilisateur a été supprimée avec succès" });
+        }
+      
+} 
 static deleteuser: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
