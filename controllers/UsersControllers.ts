@@ -66,38 +66,34 @@ export class UsersControllers {
             let data : any = await c.body;
             try {
                 const user: any = await userdb.findOne({ email: data.email })
-                
-               /* let idco = setInterval(() => {(user.password);}, 500);
-                if(idco){
-                    idco = idco +1
-                    console.log(idco);
-                }*/
-                //console.log(idco);
+                console.log(await incLoginAttempts(user, user.loginAttempts))
+
                 if(data.email == '' || data.password == ''){
                     c.response.status = 400;
                     return c.json({ error: true, message: "Email/password manquants" });
-                }else if(!(compareSync(data.password, user.password))){
+                }else if(!user || !(compareSync(data.password, user.password))){
                     return c.json({status:400, error: true, message: "password incorrect" });
                 }
-               /* else if(!user || !PasswordException.comparePassword(data.password, user.password)){
-                    c.response.status = 400;
-                    return c.json({status:400, error: true, message: "Email/password incorrect" });
-                }*/
                 //test nombre de tentatives
-               /* else if(incLoginAttempts(user))
+                else if(await incLoginAttempts(user, user.loginAttempts) > 5 )
                 {
-                    console.log(incLoginAttempts(user));
-                    c.response.status = 400;
-                    return c.json({ error: false, message: 'Email/password incorrect' });
-                }*/
-                else {
-                    await userdb.updateOne(
-                    { email: user.email },
-                    {$set: {access_token: await jwt.getAuthToken(user)}});
                     await userdb.updateOne(
                         { email: user.email },
+                        {$set: {loginAttempts: 0}}); 
+                
+                    return c.json({ status: 429,error: true, message: "Trop de tentative sur l'email xxxxx (5 max) - Veuillez patienter (2min)"  });
+                }
+                else {
+                    const updateToken = await userdb.updateOne(
+                        { email: user.email },
+                        {$set: {access_token: await jwt.getAuthToken(user)}});
+                    const updateRToken = await userdb.updateOne(
+                        { email: user.email },
                         {$set: {refresh_token: await jwt.getRefreshToken(user)}});
-                return c.json({ status : 200 ,error: false, message: "L'utilisateur a été authentifié succès", user });
+                    if(!updateRToken && !updateToken){
+                        return c.json({ status : 201 ,error: false, message: "token n'a pas été mise à jour dans la BBD", user });
+                    }
+                    return c.json({ status : 200 ,error: false, message: "L'utilisateur a été authentifié succès", user });
                 }
             }catch (err){
                 c.response.status = 401;
@@ -146,12 +142,17 @@ export class UsersControllers {
                     const nbenfant = await userdb.count({ idparent: userParent._id});
                     (nbenfant > 3 ) ? c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" }) : 
                     await User.insert();
+                    await userdb.updateOne({
+                        email:userParent.email
+                    },{$set: {role: 'Parent'}})
+                    console.log(userParent.role);
                 return c.json({status:200, error: false, message: "Votre enfant a bien été créé avec succès",User});
             }    
         }catch (err){
             return c.json({ status:401,error: true, message: err.message });
         }
 }
+//delete child en utilisant son propre token
 static deleteuserchild: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
@@ -159,6 +160,7 @@ static deleteuserchild: HandlerFunc = async(c: Context) => {
         const token = await getToken(authorization);
         const data = await getJwtPayload(token);
         const user: any = await userdb.findOne({ email: data.email });
+        //const dataenfant = await userdb.findOne({_id: user.})
         console.log(user.email);
         if(!authorization && await getJwtPayload(token)){
             return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
