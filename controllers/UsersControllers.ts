@@ -195,5 +195,23 @@ static deleteuser: HandlerFunc = async(c: Context) => {
         }
     
 }
+static offuser: HandlerFunc = async(c: Context) => {
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+    const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
+        const data = await getJwtPayload(token);
+        const user: any = await userdb.findOne({ email: data.email });
+        if(!authorization && await getJwtPayload(token)){
+            return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+        }
+        const deconnectCount = await userdb.deleteOne({ token: user.access_token });
+        if(!deconnectCount){
+            return c.json({ status : 201,error: false, message: "Votre compte n'a pas été déconnecté " });
+        }else{
+            return c.json({ status : 200,error: false, message: "L'utilisateur a été déconnecté avec succès" } );
+        }
+      
+} 
     
 }
