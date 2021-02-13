@@ -18,9 +18,6 @@ export class CartControllers {
 static usercart: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
-    let cartdb = _userdb.cartdb;
-    console.log(cartdb);
-    console.log(userdb);
 
     const authorization: any = c.request.headers.get("authorization");
     if(authorization){
