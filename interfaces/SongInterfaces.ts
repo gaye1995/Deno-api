@@ -5,10 +5,10 @@ import { ObjectId } from "https://deno.land/x/mongo@v0.20.1/src/utils/bson.ts";
 
 export default interface SongInterfaces {
     id :{ $oid: string }|null;
-    name: string;
-    url: string;
-    cover: string;
-    type: string;
+    name?: string;
+    url?: string;
+    cover?: string;
+    type?: string;
     createdAt: Date;
     updatedAt : Date;
     

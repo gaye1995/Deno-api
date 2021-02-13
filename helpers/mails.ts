@@ -42,3 +42,15 @@ export const mailajoutCart = async (email: string)=>{
       
       await client.close();
 }
+export const mailAbonnementStripe = async (email: string)=>{
+  await smtpconnect();
+  const text = "Vous venez de vous abonnez sur notre site";
+      await client.send({
+        from: EMAIL_USER, // Your Email address
+        to: email, // Email address of the destination
+        subject: "Mail Title",
+        content: text,
+      });
+      
+      await client.close();
+}

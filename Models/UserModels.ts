@@ -6,6 +6,7 @@ import { Bson } from "https://deno.land/x/bson/mod.ts";
 import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
 import { ObjectId } from "https://deno.land/x/mongo@v0.20.1/src/utils/bson.ts";
 import { BSONRegExp } from "https://deno.land/x/mongo@v0.20.1/bson/bson.d.ts";
+import { cardModels } from "./CardModels.ts";
 
 export class UserModels extends UserDB implements UserInterfaces {
 
@@ -21,12 +22,15 @@ export class UserModels extends UserDB implements UserInterfaces {
     refresh_token:string;
     phoneNumber ? : string;
     subscription?:subscriptionTypes;
+    cart? : cardModels ; 
    idparent?: { $oid: string } | string ;
-   nbConnexion :number;
+   loginAttempts :number;
+   lockUntil :number;
+
    createdAt: Date;
    updatedAt : Date;
 
-    constructor(role: roleTypes,prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaissance: string,idparent? : string) {
+    constructor(role: roleTypes,prenom: string, nom: string, email:string,sexe:string, password: string,  dateNaissance: Date,idparent? : string) {
         super();
         this._role = role;
         this.firstname = prenom;
@@ -40,7 +44,8 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.subscription = 0;
         this.createdAt = new Date();
         this.updatedAt = new Date();
-        this.nbConnexion = 0;
+        this.loginAttempts = 0;
+        this.lockUntil = 0;
         if(this.role === 'Enfant'){
             this.idparent = idparent
         }
@@ -77,12 +82,14 @@ export class UserModels extends UserDB implements UserInterfaces {
             dateNaissance: this.dateNaissance,
             phoneNumber: this.phoneNumber,
             subscription: this.subscription ,
+            cart : this.cart,
             access_token: this.access_token ,
             refresh_token: this.refresh_token ,
             createdAt : this.createdAt,
             updatedAt : this.updatedAt,
-            nbConnexion : this.nbConnexion,
-
+            loginAttempts :this.loginAttempts,
+            lockUntil :this.lockUntil,
+         
         }
         if(this.role === 'Enfant')
         {
@@ -117,4 +124,5 @@ export class UserModels extends UserDB implements UserInterfaces {
             { $set: {refresh_token : refresh} }
           ); 
        }
+      
 }

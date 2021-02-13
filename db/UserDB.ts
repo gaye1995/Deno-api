@@ -8,12 +8,10 @@ import { userUpdateTypes,SubscriptionUpdateTypes } from "../types/userUpdateType
 export class UserDB{
 
     public userdb: any;
-    public cartdb: any;
 
     
     constructor(){
         this.userdb = db.collection<UserInterfaces>("users");
-        this.cartdb = db.collection<CardInterfaces>("cart");
     }
 
 }
