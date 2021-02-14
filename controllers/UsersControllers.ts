@@ -241,7 +241,7 @@ static allUserChild: HandlerFunc = async(c: Context) => {
         }else if(userParent.subscription == 0){
             return c.json({status: 403, error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" });
         }else{
-           const user : [] = await userdb.find({idparent :userParent._id});
+           const user : any = await userdb.findOne({idparent :userParent._id});
            return c.json({Error :false,message:"",user});
         }
       
