@@ -4,17 +4,28 @@ import * as jwt from '../helpers/jwt.ts';
 import { UserModels } from '../Models/UserModels.ts';
 import { roleTypes } from '../types/rolesTypes.ts';
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
-import { Context } from 'https://deno.land/x/abc@v1.2.4/context.ts';
+import { Context, REDIRECT_BACK } from 'https://deno.land/x/abc@v1.2.4/context.ts';
 import PasswordException from '../exception/PasswordException.ts';
 import EmailException from '../exception/EmailException.ts';
 import { Get } from "https://deno.land/x/abc@v1.2.4/_http_method.ts";
 import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
 import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../helpers/jwt.ts";
-import { ChildsModels } from "../Models/ChildsModels.ts";
+import ChildsModels = require("../Models/ChildsModels.ts");
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 import {smtpconnect} from '../helpers/mails.ts'
+
 export class UsersControllers {
+
+    async show(c:any){
+        let _userdb: UserDB = new UserDB();
+        let userdb = _userdb.userdb;
+
+        const data = await userdb.findOne(
+            { _id:{$objectId: c.params.id }},
+        );
+        c.response.body = data;
+    }
 
     static register: HandlerFunc = async(c: Context) => {
 
@@ -136,10 +147,6 @@ export class UsersControllers {
                } 
            })
         }
-
-
-
-
             const user = await userdb.findOne({email});
 
             //console.log(user.subscription);
@@ -210,30 +217,136 @@ export class UsersControllers {
             return c.json({ error: true, message: err.message });
         }
     }
-    // Route 8 => Delete new child user
+
+    // Route 9 => Modifier (/user) / a faire
+    static updateUser: HandlerFunc = async(c: any) => {
+      
+            let _userdb: UserDB = new UserDB();
+            let userdb = _userdb.userdb;
+            let data : any = await c.body;
+            try {
+                const authorization: any = c.request.headers.get("authorization");
+                const user: any = await userdb.findOne({ email: data.email })
+                if(){
+
+                }
+                else if(!user || !PasswordException.comparePassword(data.password, user.password)){
+                    c.response.status = 409;
+                    return c.json({ error: true, message: "Email/password incorrect" });
+                }
+                else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
+                    c.response.status = 409;
+                    return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
+                }
+            }
+            catch (err) {
+                return c.json({ error: true, message: err.message });
+            }
+    }
+    // Route 9 => Listage d' enfants / a faire
+    static allUserChild: HandlerFunc = async(c: any) => {
+
+        let _userdb: UserDB = new UserDB();
+        let userdb = _userdb.userdb;
+        try {
+        const authorization: any = c.request.headers.get("authorization");
+            const token = await getToken(authorization);
+            const dataparent = await getJwtPayload(token);
+            const userParent: any = await userdb.findOne({ email: dataparent.email })
+            const data : any = await c.body;
+            const user: any = await userdb.findOne({ email: data.email })
+            if(data._id == ""){
+                c.response.status = 400;
+                return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
+            }
+            else if(user.role !== "Parent"){
+                c.response.status = 403;
+                return c.json({ error: true, message: "Votre droits d'accès ne permettent pas d'accéder à la ressource"});
+            }
+            else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
+                c.response.status = 409;
+                return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
+            }
+            else{
+              //recupération de la liste des enfant par parent
+                await ChildsModels.find({ user_id: user._id});
+                c.response.status = 200;
+            }
+        }
+        catch (err) {
+            return c.json({ error: true, message: err.message });
+        }
+    }
+
+    // Route 8 => Delete new user child / a faire
     static deleteUserChild: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
 
+        // await userdb.deleteOne({ _id: { $objectId: c.params.id}});
+        // c.response.status = 200;
+        // c.response.body = { message: "l'utilisateur a bien été supprimé avec succés" };
         let { email }: any = c.request.body;
         try{
-            if(!userdb || !userdb.id || !email){
-                c.response.status = 403;
-                return { error: false, message: 'Votre droits d\'accès  ne permettent  pas d\'accèder à la ressource' };
+            const authorization: any = c.request.headers.get("authorization");
+            const token = await getToken(authorization);
+            const userChildToDelete = await userdb.deleteOne({email: email.email});
+            if(!token){
+                c.response.status = 401;
+                return c.json({Error: true, message: "Votre token n'est pas correct"});
             }
-            const user = await userdb.deleteOne({email: email.email}); 
-            await userdb.deleteOne(user);
+            else if (!userdb || !userdb.id || !email){
+                c.response.status = 403;
+                return { error: true, message: "Votre droits d\'accès ne permettent pas d'accéder à la ressource" };
+            }
+            else{
+                await userdb.deleteOne(userChildToDelete);
+                c.response.status = 200;
+                return { error: false, message: "L'utilisateur a été supprimée avec succès"};
+            }
+             
+        }
+        catch (err) {
+            return c.json({ error: true, message: err.message });
+        }
+    
+
+    }  
+    
+    // Route 01  => Logout / ok - to verify 
+    static logout: HandlerFunc = async(c: Context) => {
+
+        const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
+
+        try{
+            await c.state.session.set(token, undefined);
             c.response.status = 200;
-            return { error: false, message: "l'utilisateur a bien été supprimé avec succés"};
-        
+            c.response.redirect(REDIRECT_BACK, "/login");
+            return { error: false, message: "L'utilisateur a été déconnecté avec succès"};
         }
         catch (err) {
             c.response.status = 401;
             return { error: true, message: "Votre token n\'est pas correct" };
         }
-    }  
+    }
 
-}
-       
+      // Route 6 => index / ok - to verify 
+      static index: HandlerFunc = async(c: any) => {
+
+        const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
     
+        try{
+            if (token !== undefined) {
+                c.response.status = 200;
+                c.response.redirect(REDIRECT_BACK, "/home.html");
+            }
+        }
+        catch (err) {
+            c.response.status = 404;
+            c.response.redirect(REDIRECT_BACK, "/404.html");
+        }
+    }
+
 }
