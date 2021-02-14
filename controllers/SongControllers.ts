@@ -31,24 +31,24 @@ export class SongControllers {
             const authorization: any = c.request.headers.get("authorization");
             if(!authorization && await getToken(authorization))
             {
-                return c.json({status: 401, error: true, message: "Votre token n'est pas correct" });             
+                c.json({status: 401, error: true, message: "Votre token n'est pas correct" });             
             }else{
                 const token = await getToken(authorization);
                 const dataparent = await getJwtPayload(token);
                 const userParent: any = await userdb.findOne({ email: dataparent.email });
                 if(userParent.subscription===0)
                 {
-                     return  c.json({status: 403,error: true, message: "Votre abonnement ne permet pas d'accéder à la ressource" });
+                      c.json({status: 403,error: true, message: "Votre abonnement ne permet pas d'accéder à la ressource" });
                 }else{
                      /**
                      * @description Get all songs
                      * @route GET /songs
                      */
-                   return c.json([{status: 200, error: false, songs:[] }])
+                    c.json([{status: 200, error: false, songs:[] }])
                 }
             }
     }catch{
-       return c.json({status: 401, error: true, message: "Votre token n'est pas correct" });             
+        c.json({status: 401, error: true, message: "Votre token n'est pas correct" });             
     }
 }
 static songsid: HandlerFunc = async(c: Context) => {
@@ -58,22 +58,22 @@ static songsid: HandlerFunc = async(c: Context) => {
         const authorization: any = c.request.headers.get("authorization");
         if(!authorization && await getToken(authorization))
         {
-            return c.json({status: 401, error: true, message: "Votre token n'est pas correct" });             
+            c.json({status: 401, error: true, message: "Votre token n'est pas correct" });             
         }else{
             const token = await getToken(authorization);
             const dataparent = await getJwtPayload(token);
             const userParent: any = await userdb.findOne({ email: dataparent.email });
             if(userParent.subscription===0)
             {
-                return  c.json({status: 403,error: true, message: "Votre abonnement ne permet pas d'accéder à la ressource" });
+                  c.json({status: 403,error: true, message: "Votre abonnement ne permet pas d'accéder à la ressource" });
             }else{
-                const songs:any  = await  userdb.findOne({id: c.params})
-                await play('/songs/{id}');
+                const songs = userdb.findOne({id: c.params})
+                //await play('/songs/{id}');
                 return c.json({ error: false, songs});
             }
         }
 }catch{
-    return c.json({status: 401, error: true, message: "Votre token n'est pas correct" });             
+    c.json({status: 401, error: true, message: "Votre token n'est pas correct" });             
 }
 }
 }
