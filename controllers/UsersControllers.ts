@@ -228,6 +228,22 @@ static facture: HandlerFunc = async(c: Context) => {
             return c.json({ status : 200,error: false, bills:[] } );
         }
       
-} 
-    
+}
+static allUserChild: HandlerFunc = async(c: Context) => {
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+    const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
+        const data = await getJwtPayload(token);
+        const userParent: any = await userdb.findOne({ email: data.email });
+        if(!authorization && await getJwtPayload(token)){
+            return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+        }else if(userParent.subscription == 0){
+            return c.json({status: 403, error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" });
+        }else{
+            const user:any =await userdb.find({idparent: userParent._id})
+            console.log(user)
+        }
+      
+}
 }
