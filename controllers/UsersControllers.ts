@@ -22,11 +22,10 @@ export class UsersControllers {
             try {
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
-            console.log(data.email);
-            if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaissance==""){
+            if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.sexe=="" || data.dateNaissance==""){
                 c.response.status = 400;
                 return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
-            }else if(!PasswordException.isValidPassword(data.password))
+            }else if(EmailException.checkEmail(data.email) || !PasswordException.isValidPassword(data.password))
             {
                 c.response.status = 409;
                 return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
@@ -37,7 +36,6 @@ export class UsersControllers {
                 return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
             }
             else{
-                console.log(data.firstname);
                 const pass = await PasswordException.hashPassword(data.password);
                 const User = new UserModels(
                     'Tuteur',
@@ -66,8 +64,6 @@ export class UsersControllers {
             let data : any = await c.body;
             try {
                 const user: any = await userdb.findOne({ email: data.email })
-                console.log(await incLoginAttempts(user, user.loginAttempts))
-
                 if(data.email == '' || data.password == ''){
                     c.response.status = 400;
                     return c.json({ error: true, message: "Email/password manquants" });
@@ -110,24 +106,26 @@ export class UsersControllers {
             const userParent: any = await userdb.findOne({ email: dataparent.email });
             const data : any = await c.body;
             const user1: any = await userdb.findOne({ email: data.email });
-            console.log(dataparent);
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaiss=="" || data.sexe==""){
                 return c.json({ status :400,error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
             }
-            else if(!token){
+            else if(!authorization || !token){
                 return c.json({Error: true, message: "Votre token n'est pas correct"});
+            } else if(userParent.subscription == 0){
+                c.response.status = 403;
+                return c.json({ error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" });
             }else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email))
             {
-                return c.json({status:409, error: true, message: "Une ou plusieurs données sont erronées" });
+                c.response.status = 409;
+                return c.json({error: true, message: "Une ou plusieurs données sont erronées" });
             }else if(user1){
-                console.log(user1.email);
                 c.response.status = 409;
                 return c.json({ status:409, error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
             }else if((await userdb.count({idparent: userParent._id})) >= 3){
-               c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
+                c.response.status = 409;
+               return c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
             }
             else{
-                console.log(await userdb.count({idparent: userParent._id}));
                    const pass = await PasswordException.hashPassword(data.password);
                    const User = new UserModels(
                     'Enfant',
@@ -139,13 +137,12 @@ export class UsersControllers {
                     data.dateNaissance,
                     userParent._id
                     );
-                    const nbenfant = await userdb.count({ idparent: userParent._id});
-                    (nbenfant > 3 ) ? c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" }) : 
+                    //const nbenfant = await userdb.count({ idparent: userParent._id});
+                   // (nbenfant > 3 ) ? c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" }) : 
                     await User.insert();
                     await userdb.updateOne({
                         email:userParent.email
                     },{$set: {role: 'Parent'}})
-                    console.log(userParent.role);
                 return c.json({status:200, error: false, message: "Votre enfant a bien été créé avec succès",User});
             }    
         }catch (err){
@@ -160,16 +157,17 @@ static deleteuserchild: HandlerFunc = async(c: Context) => {
         const token = await getToken(authorization);
         const data = await getJwtPayload(token);
         const user: any = await userdb.findOne({ email: data.email });
-        //const dataenfant = await userdb.findOne({_id: user.})
-        console.log(user.email);
         if(!authorization && await getJwtPayload(token)){
             return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+        }else if(user.subscription == 1){
+            c.response.status = 403;
+            return c.json({ error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" });
         }else if(!user.idparent && !user.id){
             return c.json({status: 403, error: true, message: "Vous ne pouvez pas supprimer cet enfant" });
         }
         const deleteCount = await userdb.deleteOne({ _id: user._id });
         if(!deleteCount){
-            return c.json({ status : 200,error: true, message: "Votre compte n'a pas été supprimés avec succès" });
+            return c.json({ status : 403,error: true, message: "Votre compte n'a pas été supprimés avec succès" });
         }else{
             return c.json({ status : 200,error: false, message: "L'utilisateur a été supprimée avec succès" });
         }
@@ -182,13 +180,12 @@ static deleteuser: HandlerFunc = async(c: Context) => {
         const token = await getToken(authorization);
         const data = await getJwtPayload(token);
         const user: any = await userdb.findOne({ email: data.email });
-        console.log(user.email);
         if(!token){
             return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
         }
         const deleteCount = await userdb.deleteOne({ _id: user._id });
         if(!deleteCount){
-            return c.json({ status : 200,error: true, message: "Votre compte n'a pas été supprimés avec succès" });
+            return c.json({ status : 403,error: true, message: "Votre compte n'a pas été supprimés avec succès" });
         }else{
             await userdb.deleteMany({idparent: user._id});
             return c.json({ status : 200,error: false, message: "Votre compte et le compte de vos enfants ont été supprimés avec succès" });
@@ -207,7 +204,7 @@ static offuser: HandlerFunc = async(c: Context) => {
         }
         const deconnectCount = await userdb.deleteOne({ token: user.access_token });
         if(!deconnectCount){
-            return c.json({ status : 201,error: true, message: "Votre compte n'a pas été déconnecté " });
+            return c.json({ status : 403,error: true, message: "Votre compte n'a pas été déconnecté " });
         }else{
             return c.json({ status : 200,error: false, message: "L'utilisateur a été déconnecté avec succès" } );
         }

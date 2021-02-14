@@ -1,5 +1,5 @@
 import { UserDB } from './../db/UserDB.ts';
-import type { roleTypes, subscriptionTypes } from '../types/rolesTypes.ts';
+import type { roleTypes, subscriptionTypes,sexeTypes } from '../types/rolesTypes.ts';
 import { hash } from '../middlewares/auth.middleware.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { Bson } from "https://deno.land/x/bson/mod.ts";
@@ -15,7 +15,7 @@ export class UserModels extends UserDB implements UserInterfaces {
     firstname: string;
     lastname: string;
     email: string;
-    sexe: string;
+    sexe: sexeTypes;
     password: string;
     dateNaissance: Date;
     access_token:string;
@@ -30,7 +30,7 @@ export class UserModels extends UserDB implements UserInterfaces {
    createdAt: Date;
    updatedAt : Date;
 
-    constructor(role: roleTypes,prenom: string, nom: string, email:string,sexe:string, password: string,  dateNaissance: Date,idparent? : string) {
+    constructor(role: roleTypes,prenom: string, nom: string, email:string,sexe:sexeTypes, password: string,  dateNaissance: Date,idparent? : string) {
         super();
         this._role = role;
         this.firstname = prenom;

@@ -4,7 +4,7 @@ import { Context } from 'https://deno.land/x/abc@v1.2.4/context.ts';
 import {mailAbonnementStripe} from '../helpers/mails.ts'
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
 import { UserDB } from "../db/UserDB.ts";
-import { getJwtPayload, getToken } from "../middlewares/jwt-middleware.ts";
+import { getJwtPayload, getToken ,getJwtPayloadST} from "../middlewares/jwt-middleware.ts";
 
 export class StripeControllers {
 
@@ -75,7 +75,7 @@ export class StripeControllers {
             const subcription = await fetch("https://api.stripe.com/v1/subscriptions", requestOptions)
             const subsstripe = await subcription.json()
             const token=await getToken(STRIPE_SECRET_KEY)
-           console.log(await getJwtPayload(token));
+           console.log(await getJwtPayloadST(token));
             c.response.status = 200;
             return c.json({status:200, error: false, message: "Votre période d'essai viens d'être activé - 5min" , subsstripe  });
         
