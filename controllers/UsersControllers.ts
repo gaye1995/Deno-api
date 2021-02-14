@@ -22,22 +22,20 @@ export class UsersControllers {
             try {
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
-            console.log(data.email);
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaissance==""){
                 c.response.status = 400;
-                return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
-            }else if(!PasswordException.isValidPassword(data.password))
+                return c.json({status : 400,error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
+            }else if(EmailException.checkEmail(data.email) || PasswordException.isValidPassword(data.password))
             {
                 c.response.status = 409;
-                return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
+                return c.json({ status :409,error: true, message: "Une ou plusieurs données sont erronées"});
             }
             else if(user)
             {
                 c.response.status = 409;
-                return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
+                return c.json({ status : 409,error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
             }
             else{
-                console.log(data.firstname);
                 const pass = await PasswordException.hashPassword(data.password);
                 const User = new UserModels(
                     'Tuteur',
@@ -51,7 +49,7 @@ export class UsersControllers {
                 await User.insert();
                 await mailRegister(User.email);
                 c.response.status = 201;
-                return c.json({ error: false, message: "L'utilisateur a bien été créé avec succès",User});
+                return c.json({ status : 201,error: false, message: "L'utilisateur a bien été créé avec succès",User});
             }
         }catch (err) {
             c.response.status = 401;
@@ -66,8 +64,6 @@ export class UsersControllers {
             let data : any = await c.body;
             try {
                 const user: any = await userdb.findOne({ email: data.email })
-                console.log(await incLoginAttempts(user, user.loginAttempts))
-
                 if(data.email == '' || data.password == ''){
                     c.response.status = 400;
                     return c.json({ error: true, message: "Email/password manquants" });
@@ -110,24 +106,21 @@ export class UsersControllers {
             const userParent: any = await userdb.findOne({ email: dataparent.email });
             const data : any = await c.body;
             const user1: any = await userdb.findOne({ email: data.email });
-            console.log(dataparent);
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaiss=="" || data.sexe==""){
                 return c.json({ status :400,error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
             }
             else if(!token){
                 return c.json({Error: true, message: "Votre token n'est pas correct"});
-            }else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email))
+            }else if(PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email))
             {
                 return c.json({status:409, error: true, message: "Une ou plusieurs données sont erronées" });
             }else if(user1){
-                console.log(user1.email);
                 c.response.status = 409;
-                return c.json({ status:409, error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
+                return c.json({error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
             }else if((await userdb.count({idparent: userParent._id})) >= 3){
                c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" });
             }
             else{
-                console.log(await userdb.count({idparent: userParent._id}));
                    const pass = await PasswordException.hashPassword(data.password);
                    const User = new UserModels(
                     'Enfant',
@@ -145,7 +138,6 @@ export class UsersControllers {
                     await userdb.updateOne({
                         email:userParent.email
                     },{$set: {role: 'Parent'}})
-                    console.log(userParent.role);
                 return c.json({status:200, error: false, message: "Votre enfant a bien été créé avec succès",User});
             }    
         }catch (err){
@@ -161,7 +153,6 @@ static deleteuserchild: HandlerFunc = async(c: Context) => {
         const data = await getJwtPayload(token);
         const user: any = await userdb.findOne({ email: data.email });
         //const dataenfant = await userdb.findOne({_id: user.})
-        console.log(user.email);
         if(!authorization && await getJwtPayload(token)){
             return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
         }else if(!user.idparent && !user.id){
@@ -175,6 +166,25 @@ static deleteuserchild: HandlerFunc = async(c: Context) => {
         }
       
 } 
+//delete child en utilisant son propre token
+static subscriber: HandlerFunc = async(c: Context) => {
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+    const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
+        const data = await getJwtPayload(token);
+        const user: any = await userdb.findOne({ email: data.email });
+        //const dataenfant = await userdb.findOne({_id: user.})
+        if(!authorization && await getJwtPayload(token)){
+            return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+        } else
+        {
+            await userdb.updateOne(
+                { email: user.email },
+                {$set: {subscription: 1}}); 
+            return c.json({ status: 200,error: true, message: "Votre abonnement a bien été mise à jour" }, user);
+        }
+} 
 static deleteuser: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
@@ -182,7 +192,6 @@ static deleteuser: HandlerFunc = async(c: Context) => {
         const token = await getToken(authorization);
         const data = await getJwtPayload(token);
         const user: any = await userdb.findOne({ email: data.email });
-        console.log(user.email);
         if(!token){
             return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
         }
