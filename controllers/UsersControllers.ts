@@ -333,15 +333,11 @@ export class UsersControllers {
 
       // Route 6 => index / ok - to verify 
       static index: HandlerFunc = async(c: any) => {
-
-        const authorization: any = c.request.headers.get("authorization");
-        const token = await getToken(authorization);
-    
         try{
-            if (token !== undefined) {
-                c.response.status = 200;
-                c.response.redirect(REDIRECT_BACK, "/home.html");
-            }
+           
+            c.response.status = 200;
+            c.response.redirect(REDIRECT_BACK, "/home.html");
+            
         }
         catch (err) {
             c.response.status = 404;
