@@ -3,16 +3,16 @@ import { UserDB } from './../db/UserDB.ts';
 import * as jwt from '../middlewares/jwt-middleware.ts';
 import { UserModels } from '../Models/UserModels.ts';
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
-import { Context } from 'https://deno.land/x/abc@v1.2.4/context.ts';
+import { Context} from 'https://deno.land/x/abc@v1.2.4/context.ts';
 import PasswordException from '../exception/PasswordException.ts';
 import EmailException from '../exception/EmailException.ts';
 import { hashSync, compareSync } from "https://deno.land/x/bcrypt@v0.2.1/mod.ts";
 import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
 import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../middlewares/jwt-middleware.ts";
-import {mailRegister} from '../helpers/mails.ts'
-import {incLoginAttempts} from '../utils/maxlock.ts'
-
+import {mailRegister} from '../helpers/mails.ts';
+import {incLoginAttempts} from '../utils/maxlock.ts';
+import { html } from "https://deno.land/x/html/mod.ts";
 export class UsersControllers {
 
     static register: HandlerFunc = async(c: Context) => {
@@ -165,7 +165,7 @@ static deleteuserchild: HandlerFunc = async(c: Context) => {
         if(!authorization && await getJwtPayload(token)){
             return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
         }else if(!user.idparent && !user.id){
-            return c.json({status: 403, error: true, message: "Vous ne pouvez pas supprimer cet enfant" });
+            return c.json({status: 403, error: true, message: "Votre droits d'accès ne permettent pas d'accéder à la ressource" });
         }
         const deleteCount = await userdb.deleteOne({ _id: user._id });
         if(!deleteCount){
@@ -207,11 +207,10 @@ static offuser: HandlerFunc = async(c: Context) => {
         }
         const deconnectCount = await userdb.deleteOne({ token: user.access_token });
         if(!deconnectCount){
-            return c.json({ status : 201,error: true, message: "Votre compte n'a pas été déconnecté " });
+            return c.json({error: true, message: "Votre compte n'a pas été déconnecté " },201);
         }else{
             return c.json({ status : 200,error: false, message: "L'utilisateur a été déconnecté avec succès" } );
         }
-      
 } 
 static facture: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
@@ -249,7 +248,38 @@ static facture: HandlerFunc = async(c: Context) => {
 //         }
       
 // }
-// Route 9 => Listage d' enfants / a faire
+// Route 01  => Logout / ok - to verify 
+// static logout: HandlerFunc = async(c: Context) => {
+
+//     const authorization: any = c.request.headers.get("authorization");
+//     const token = await getToken(authorization);
+
+//     try{
+//         await c.state.session.set(token, undefined);
+//         c.response.status = 200;
+//         c.response.redirect(REDIRECT_BACK, "/login");
+//         return { error: false, message: "L'utilisateur a été déconnecté avec succès"};
+//     }
+//     catch (err) {
+//         c.response.status = 401;
+//         return { error: true, message: "Votre token n\'est pas correct" };
+//     }
+// }
+
+  // Route 6 => index
+  static index: HandlerFunc = async(c: any) => {
+    try{
+        const message = html`<h1> Bienvenue </h1>`;
+        return c.json({ message });
+    }
+    catch (err) {
+        c.response.status = 404;
+        return c.json({ status : 200,error: true, message: "404" });
+        // c.response.redirect(REDIRECT_BACK, "/404.html");
+    }
+
+}
+// Route 9 => Listage d' enfants
 static allUserChild: HandlerFunc = async(c: any) => {
 
     let _userdb: UserDB = new UserDB();
@@ -274,7 +304,7 @@ static allUserChild: HandlerFunc = async(c: any) => {
             return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
         }
         else{
-          //recupération de la liste des enfant par parent
+          //recupération de la liste des enfants par parent
           const allchild = await userdb.find({idparent :userParent._id}).toArray();
           console.log(allchild)
           return c.json({Error :false,allchild});
@@ -283,6 +313,31 @@ static allUserChild: HandlerFunc = async(c: any) => {
     catch (err) {
         return c.json({ error: true, message: err.message });
     }
-}
 
+}
+static deleteUserChild: HandlerFunc = async(c: Context) => {
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+    const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
+        const data = await getJwtPayload(token);
+        const user: any = await userdb.findOne({ email: data.email });
+        const dataparent = await getJwtPayload(token);
+        const userParent: any = await userdb.findOne({ email: dataparent.email });
+        console.log(user.email);
+        if(!token){
+            return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+        }
+        const deleteChild = await userdb.deleteOne({ _id: user._id });
+        if(!deleteChild){
+            return c.json({ status : 200,error: true, message: "Votre compte n'a pas été supprimés avec succès" });
+        }
+        else if(userParent.role !== "Parent"){
+            return c.json({ status : 403,error: true, message: "Votre droits d'accès ne permettent pas d'accéder à la ressource"});
+        }
+        else{
+            return c.json({ status : 200,error: false, message: "L'utilisateur a été supprimée avec succès" });
+        }
+    
+}
 }
