@@ -229,24 +229,60 @@ static facture: HandlerFunc = async(c: Context) => {
         }
       
 }
-static allUserChild: HandlerFunc = async(c: Context) => {
+// static allUserChild: HandlerFunc = async(c: Context) => {
+//     let _userdb: UserDB = new UserDB();
+//     let userdb = _userdb.userdb;
+//     const authorization: any = c.request.headers.get("authorization");
+//         const token = await getToken(authorization);
+//         const data = await getJwtPayload(token);
+//         const userParent: any = await userdb.findOne({ email: data.email });
+//         if(!authorization && await getJwtPayload(token)){
+//             return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+//         }else if(userParent.subscription == 0){
+//             return c.json({status: 403, error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" });
+//         }else{
+//         //    const users : any = await userdb.find({idparent :userParent._id});
+//            const allchild = await userdb.find({idparent :userParent._id}).toArray();
+//            console.log(allchild)
+//            return c.json({Error :false,allchild});
+        
+//         }
+      
+// }
+// Route 9 => Listage d' enfants / a faire
+static allUserChild: HandlerFunc = async(c: any) => {
+
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
+    try {
     const authorization: any = c.request.headers.get("authorization");
         const token = await getToken(authorization);
-        const data = await getJwtPayload(token);
-        const userParent: any = await userdb.findOne({ email: data.email });
-        if(!authorization && await getJwtPayload(token)){
-            return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
-        }else if(userParent.subscription == 0){
-            return c.json({status: 403, error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" });
-        }else{
-        //    const users : any = await userdb.find({idparent :userParent._id});
-           const allchild = await userdb.find({idparent :userParent._id}).toArray();
-           console.log(allchild)
-           return c.json({Error :false,allchild});
-        
+        const dataparent = await getJwtPayload(token);
+        const userParent: any = await userdb.findOne({ email: dataparent.email })
+        const data : any = await c.body;
+        const user: any = await userdb.findOne({ email: data.email })
+        if(data._id == ""){
+            c.response.status = 400;
+            return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
         }
-      
+        else if(user.role !== "Parent"){
+            c.response.status = 403;
+            return c.json({ error: true, message: "Votre droits d'accès ne permettent pas d'accéder à la ressource"});
+        }
+        else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
+            c.response.status = 409;
+            return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
+        }
+        else{
+          //recupération de la liste des enfant par parent
+          const allchild = await userdb.find({idparent :userParent._id}).toArray();
+          console.log(allchild)
+          return c.json({Error :false,allchild});
+        }
+    }
+    catch (err) {
+        return c.json({ error: true, message: err.message });
+    }
 }
+
 }
