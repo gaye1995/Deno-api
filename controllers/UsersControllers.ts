@@ -59,7 +59,7 @@ export class UsersControllers {
         }
     }
 
-        static login: HandlerFunc = async(c: Context) => {
+    static login: HandlerFunc = async(c: Context) => {
 
             let _userdb: UserDB = new UserDB();
             let userdb = _userdb.userdb;
@@ -241,9 +241,9 @@ static facture: HandlerFunc = async(c: Context) => {
 //             return c.json({status: 403, error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" });
 //         }else{
 //         //    const users : any = await userdb.find({idparent :userParent._id});
-//            const allchild = await userdb.find({idparent :userParent._id}).toArray();
-//            console.log(allchild)
-//            return c.json({Error :false,allchild});
+//            const users = await userdb.find({idparent :userParent._id}).toArray();
+//            console.log(users)
+//            return c.json({Error :false,users});
         
 //         }
       
@@ -305,9 +305,14 @@ static allUserChild: HandlerFunc = async(c: any) => {
         }
         else{
           //recupération de la liste des enfants par parent
-          const allchild = await userdb.find({idparent :userParent._id}).toArray();
-          console.log(allchild)
-          return c.json({Error :false,allchild});
+          const users = await userdb.find({idparent :userParent._id}).toArray();
+          users.map((maListe: any ) =>{
+            Object.assign(maListe,{_id:maListe._id});
+             delete maListe.email
+             delete maListe.firstname
+          })
+          if (users) return c.json({Error :false,users});
+          else return [];
         }
     }
     catch (err) {
@@ -315,29 +320,44 @@ static allUserChild: HandlerFunc = async(c: any) => {
     }
 
 }
-static deleteUserChild: HandlerFunc = async(c: Context) => {
+// Modify user 
+static updateUser: HandlerFunc = async(c: any) => {
+  
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
-    const authorization: any = c.request.headers.get("authorization");
+        try {
+        const authorization: any = c.request.headers.get("authorization");
         const token = await getToken(authorization);
-        const data = await getJwtPayload(token);
-        const user: any = await userdb.findOne({ email: data.email });
-        const dataparent = await getJwtPayload(token);
-        const userParent: any = await userdb.findOne({ email: dataparent.email });
-        console.log(user.email);
-        if(!token){
-            return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+        const data : any = await c.body;
+        const user: any = await userdb.findOne({ email: data.email })
+        console.log(data.email);
+         if(!token){
+            return c.json({Error: true, message: "Votre token n'est pas correct"});
+         }
+        else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
+                return c.json({status:409, error: true, message: "Une ou plusieurs données sont erronées" });
         }
-        const deleteChild = await userdb.deleteOne({ _id: user._id });
-        if(!deleteChild){
-            return c.json({ status : 200,error: true, message: "Votre compte n'a pas été supprimés avec succès" });
+        else if(!user || !(compareSync(data.password, user.password))){
+            return c.json({status:400, error: true, message: "Email/password incorrect" });
         }
-        else if(userParent.role !== "Parent"){
-            return c.json({ status : 403,error: true, message: "Votre droits d'accès ne permettent pas d'accéder à la ressource"});
+        else if(user)
+        {
+            c.response.status = 409;
+            return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
         }
         else{
-            return c.json({ status : 200,error: false, message: "L'utilisateur a été supprimée avec succès" });
+            console.log(data.firstname);
+            const pass = await PasswordException.hashPassword(data.password);
+   
+            await user.update();
+            // await mailRegister(user.email);
+            c.response.status = 200;
+            return c.json({ error: false, message: "Vos données ont été mises à jour",user});
         }
-    
+    }catch (err) {
+        c.response.status = 401;
+        return c.json({ error: true, message: err.message });
+    }
 }
+
 }

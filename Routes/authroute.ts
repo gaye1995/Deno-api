@@ -20,6 +20,7 @@ router.add(HttpMethod.Get, '/biils',UsersControllers.facture)
 router.add(HttpMethod.Delete, '/user', UsersControllers.deleteuser);
 router.add(HttpMethod.Delete, '/user/child',UsersControllers.deleteuserchild)
 router.add(HttpMethod.Delete, '/user/off',UsersControllers.offuser)
+router.add(HttpMethod.Put, '/user/',UsersControllers.updateUser)
 
 
 //router.add(HttpMethod.Get, '/user/{id}', SongControllers.song);
