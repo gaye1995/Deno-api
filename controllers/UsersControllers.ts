@@ -240,7 +240,7 @@ static allUserChild: HandlerFunc = async(c: any) => {
         const userParent: any = await userdb.findOne({ email: dataparent.email })
         const data : any = await c.body;
         const user: any = await userdb.findOne({ email: data.email })
-        if(data._id == ""){
+        if(data.email=="" || data.password=="" ){
             c.response.status = 400;
             return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
         }
@@ -287,6 +287,7 @@ static updateUser: HandlerFunc = async(c: any) => {
         const user: any = await userdb.findOne({ email: data.email })
         console.log(data.email);
          if(!token){
+            c.response.status = 401;
             return c.json({Error: true, message: "Votre token n'est pas correct"});
          }
         else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
@@ -302,10 +303,7 @@ static updateUser: HandlerFunc = async(c: any) => {
         }
         else{
             console.log(data.firstname);
-            const pass = await PasswordException.hashPassword(data.password);
-   
             await user.update();
-            // await mailRegister(user.email);
             c.response.status = 200;
             return c.json({ error: false, message: "Vos données ont été mises à jour",user});
         }
