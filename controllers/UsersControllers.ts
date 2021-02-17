@@ -265,6 +265,7 @@ static allUserChild: HandlerFunc = async(c: any) => {
                 delete maListe.idparent
                 delete maListe._id
                 delete maListe.password
+
           })
           if (users) return c.json({Error :false,users});
           else return [];
@@ -296,16 +297,19 @@ static updateUser: HandlerFunc = async(c: any) => {
         else if(!user || !(compareSync(data.password, user.password))){
             return c.json({status:400, error: true, message: "Email/password incorrect" });
         }
-        else if(user)
-        {
-            c.response.status = 409;
-            return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
-        }
+        // else if(user)
+        // {
+        //     c.response.status = 409;
+        //     return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
+        // }
         else{
+            console.log(user.email);
+            let update = await userdb.updateOne({ email: user.email }, { $set: { firstname: data.firstname,lastname: data.lastname}} );
+             // let update = await userdb.updateOne({ email: user.email },{ ...data, email: user.email })
+            console.log(data.lastname);
             console.log(data.firstname);
-            await user.update();
-            c.response.status = 200;
-            return c.json({ error: false, message: "Vos données ont été mises à jour",user});
+            return c.json({ error: false, message: "Vos données ont été mises à jour"},200);
+           
         }
     }catch (err) {
         c.response.status = 401;
