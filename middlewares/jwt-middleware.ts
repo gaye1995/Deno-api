@@ -15,6 +15,7 @@ const getToken =async (authHeader: any) =>{
 export { getToken }
 
 const {
+    STRIPE_SECRET_KEY,
     JWT_TOKEN_SECRET,
     JWT_ACCESS_TOKEN_EXP,
     JWT_REFRESH_TOKEN_EXP,
@@ -55,6 +56,15 @@ const getJwtPayload = async(token: string): Promise < any | null > => {
     } catch (err) {}
     return null;
 };
+const getJwtPayloadST = async(token: string): Promise < any | null > => {
+    try {
+        const jwtObject = await verify(token, STRIPE_SECRET_KEY, header.alg);
+        if (jwtObject) {
+            return jwtObject;
+        }
+    } catch (err) {}
+    return null;
+};
 
 
-export { getAuthToken, getRefreshToken, getJwtPayload , };
+export { getAuthToken, getRefreshToken, getJwtPayload ,getJwtPayloadST };
