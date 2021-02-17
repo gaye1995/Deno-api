@@ -11,6 +11,7 @@ const router = new Router();
 router.add(HttpMethod.Post, '/register', UsersControllers.register);
 router.add(HttpMethod.Post, '/login', UsersControllers.login);
 router.add(HttpMethod.Put, '/subscription',StripeControllers.subsstripe)
+router.add(HttpMethod.Put, '/user/cart',StripeControllers.cart)
 router.add(HttpMethod.Put, '/subscriptions',UsersControllers.subscriber)
 router.add(HttpMethod.Post, '/user/child',UsersControllers.userchild)
 router.add(HttpMethod.Post, '/user/cart',CartControllers.usercart)
