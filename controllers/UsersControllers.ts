@@ -31,7 +31,7 @@ export class UsersControllers {
             }
             else if(user)
             {
-                return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" },409);
+                return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" },409);           
             }
             else{
                 const pass = await PasswordException.hashPassword(data.password);
@@ -109,10 +109,12 @@ export class UsersControllers {
             } else if(userParent.subscription == 0){
                 return c.json({ error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" },403);
             }else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email))
+              
             {
                 return c.json({error: true, message: "Une ou plusieurs données sont erronées" },409);
             }else if(user1){
                 return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" },409);
+
             }else if((await userdb.count({idparent: userParent._id})) >= 3){
                return c.json({ error: true, message: "Vous avez dépassé le cota de trois enfants" },409);
             }
@@ -135,6 +137,7 @@ export class UsersControllers {
                         email:userParent.email
                     },{$set: {role: 'Parent'}})
                 return c.json({error: false, message: "Votre enfant a bien été créé avec succès",User},200);
+
             }    
         }catch (err){
             return c.json({error: true, message: "Votre token n'est pas correct"},401);
@@ -162,6 +165,25 @@ static deleteuserchild: HandlerFunc = async(c: Context) => {
             return c.json({ error: false, message: "L'utilisateur a été supprimée avec succès" },200);
         }
       
+} 
+//delete child en utilisant son propre token
+static subscriber: HandlerFunc = async(c: Context) => {
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+    const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
+        const data = await getJwtPayload(token);
+        const user: any = await userdb.findOne({ email: data.email });
+        //const dataenfant = await userdb.findOne({_id: user.})
+        if(!authorization && await getJwtPayload(token)){
+            return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+        } else
+        {
+            await userdb.updateOne(
+                { email: user.email },
+                {$set: {subscription: 1}}); 
+            return c.json({ status: 200,error: true, message: "Votre abonnement a bien été mise à jour" }, user);
+        }
 } 
 static deleteuser: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
