@@ -3,16 +3,16 @@ import { UserDB } from './../db/UserDB.ts';
 import * as jwt from '../middlewares/jwt-middleware.ts';
 import { UserModels } from '../Models/UserModels.ts';
 import { HandlerFunc } from 'https://deno.land/x/abc@v1.2.4/types.ts';
-import { Context } from 'https://deno.land/x/abc@v1.2.4/context.ts';
+import { Context} from 'https://deno.land/x/abc@v1.2.4/context.ts';
 import PasswordException from '../exception/PasswordException.ts';
 import EmailException from '../exception/EmailException.ts';
 import { hashSync, compareSync } from "https://deno.land/x/bcrypt@v0.2.1/mod.ts";
 import { reset } from "https://deno.land/std@0.77.0/fmt/colors.ts";
 import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../middlewares/jwt-middleware.ts";
-import {mailRegister} from '../helpers/mails.ts'
-import {incLoginAttempts} from '../utils/maxlock.ts'
-
+import {mailRegister} from '../helpers/mails.ts';
+import {incLoginAttempts} from '../utils/maxlock.ts';
+import { html } from "https://deno.land/x/html/mod.ts";
 export class UsersControllers {
 
     static register: HandlerFunc = async(c: Context) => {
@@ -53,7 +53,7 @@ export class UsersControllers {
         }
     }
 
-        static login: HandlerFunc = async(c: Context) => {
+    static login: HandlerFunc = async(c: Context) => {
 
             let _userdb: UserDB = new UserDB();
             let userdb = _userdb.userdb;
@@ -156,6 +156,7 @@ static deleteuserchild: HandlerFunc = async(c: Context) => {
         }else if(user.subscription == 1){
             return c.json({ error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" },403);
         }else if(!user.idparent && !user.id){
+
             return c.json({ error: true, message: "Vous ne pouvez pas supprimer cet enfant" },403);
         }
         const deleteCount = await userdb.deleteOne({ _id: user._id });
@@ -221,10 +222,12 @@ static offuser: HandlerFunc = async(c: Context) => {
         }
         const deconnectCount = await userdb.deleteOne({ token: user.token });
         if(!deconnectCount){
+
             return c.json({ error: true, message: "Votre compte n'a pas été déconnecté " },403);
         }else{
             return c.json({error: false, message: "L'utilisateur a été déconnecté avec succès" } ,200);
         }
+
     }catch(err){
         return c.json({error: true, message: "Votre token n'est pas correct" },401);
     }
@@ -245,6 +248,94 @@ static facture: HandlerFunc = async(c: Context) => {
             return c.json({ status : 200,error: false, bills:[] } );
         }
       
-} 
-    
+}
+// Route 9 => Listage d' enfants
+static allUserChild: HandlerFunc = async(c: any) => {
+
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+    try {
+    const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
+        const dataparent = await getJwtPayload(token);
+        const userParent: any = await userdb.findOne({ email: dataparent.email })
+        const data : any = await c.body;
+        const user: any = await userdb.findOne({ email: data.email })
+        if(data.email=="" || data.password=="" ){
+            c.response.status = 400;
+            return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
+        }
+        else if(user.role !== "Parent"){
+            c.response.status = 403;
+            return c.json({ error: true, message: "Votre droits d'accès ne permettent pas d'accéder à la ressource"});
+        }
+        else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
+            c.response.status = 409;
+            return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
+        }
+        else{
+          //recupération de la liste des enfants par parent
+          const users = await userdb.find({idparent :userParent._id}).toArray();
+          users.map((maListe: any ) =>{
+            Object.assign(maListe,{_id:maListe._id});
+                delete maListe.email
+                delete maListe.access_token
+                delete maListe.refresh_token
+                delete maListe.loginAttempts
+                delete maListe.lockUntil
+                delete maListe.idparent
+                delete maListe._id
+                delete maListe.password
+
+          })
+          if (users) return c.json({Error :false,users});
+          else return [];
+        }
+    }
+    catch (err) {
+        return c.json({ error: true, message: err.message });
+    }
+
+}
+// Modify user 
+static updateUser: HandlerFunc = async(c: any) => {
+  
+    let _userdb: UserDB = new UserDB();
+    let userdb = _userdb.userdb;
+        try {
+        const authorization: any = c.request.headers.get("authorization");
+        const token = await getToken(authorization);
+        const data : any = await c.body;
+        const user: any = await userdb.findOne({ email: data.email })
+        console.log(data.email);
+         if(!token){
+            c.response.status = 401;
+            return c.json({Error: true, message: "Votre token n'est pas correct"});
+         }
+        else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
+                return c.json({status:409, error: true, message: "Une ou plusieurs données sont erronées" });
+        }
+        else if(!user || !(compareSync(data.password, user.password))){
+            return c.json({status:400, error: true, message: "Email/password incorrect" });
+        }
+        // else if(user)
+        // {
+        //     c.response.status = 409;
+        //     return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
+        // }
+        else{
+            console.log(user.email);
+            let update = await userdb.updateOne({ email: user.email }, { $set: { firstname: data.firstname,lastname: data.lastname}} );
+             // let update = await userdb.updateOne({ email: user.email },{ ...data, email: user.email })
+            console.log(data.lastname);
+            console.log(data.firstname);
+            return c.json({ error: false, message: "Vos données ont été mises à jour"},200);
+           
+        }
+    }catch (err) {
+        c.response.status = 401;
+        return c.json({ error: true, message: err.message });
+    }
+}
+
 }
