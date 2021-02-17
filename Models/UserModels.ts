@@ -1,12 +1,12 @@
 import { UserDB } from './../db/UserDB.ts';
-import type { roleTypes, subscriptionTypes } from '../types/rolesTypes.ts';
-import { hash } from '../helpers/password.helpers.ts';
+import type { roleTypes, subscriptionTypes,sexeTypes } from '../types/rolesTypes.ts';
+import { hash } from '../middlewares/auth.middleware.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
-import ChildsInterfaces from '../interfaces/ChildsInterfaces.ts';
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 import type { SubscriptionUpdateTypes, userUpdateTypes } from '../types/userUpdateTypes.ts';
-import { ChildsModels } from "./ChildsModels.ts";
 import { ObjectId } from "https://deno.land/x/mongo@v0.20.1/src/utils/bson.ts";
+import { BSONRegExp } from "https://deno.land/x/mongo@v0.20.1/bson/bson.d.ts";
+import { cardModels } from "./CardModels.ts";
 
 export class UserModels extends UserDB implements UserInterfaces {
 
@@ -15,16 +15,24 @@ export class UserModels extends UserDB implements UserInterfaces {
     firstname: string;
     lastname: string;
     email: string;
-    sexe: string;
+    sexe: sexeTypes;
     password: string;
     dateNaissance: Date;
     access_token:string;
     refresh_token:string;
     phoneNumber ? : string;
-    subscription?:subscriptionTypes = 0;
-    idparent:  Bson.ObjectId ;
-    constructor(prenom: string, nom: string, email: string,sexe:string, password: string,  dateNaissance: string) {
+    subscription?:subscriptionTypes;
+    cart? : cardModels ; 
+   idparent?: { $oid: string } | string ;
+   loginAttempts :number;
+   lockUntil :number;
+
+   createdAt: Date;
+   updatedAt : Date;
+
+    constructor(role: roleTypes,prenom: string, nom: string, email:string,sexe:sexeTypes, password: string,  dateNaissance: Date,idparent? : string) {
         super();
+        this._role = role;
         this.firstname = prenom;
         this.lastname = nom;
         this.email = email;
@@ -33,8 +41,14 @@ export class UserModels extends UserDB implements UserInterfaces {
         this.dateNaissance = new Date(dateNaissance);
         this.access_token  = '';
         this.refresh_token = '';
-        this.idparent = new Bson.ObjectId(this.id);
-
+        this.subscription = 0;
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
+        this.loginAttempts = 0;
+        this.lockUntil = 0;
+        if(this.role === 'Enfant'){
+            this.idparent = idparent
+        }
     }
 
     
@@ -58,8 +72,7 @@ export class UserModels extends UserDB implements UserInterfaces {
         return `${this.lastname} ${this.firstname}`;
     }
     async insert(): Promise < void > {
-        this.password = await hash(this.password);
-        this.email = await this.userdb.insertOne({
+        const toinsert = {
             role: this._role,
             firstname: this.firstname,
             lastname: this.lastname,
@@ -69,11 +82,20 @@ export class UserModels extends UserDB implements UserInterfaces {
             dateNaissance: this.dateNaissance,
             phoneNumber: this.phoneNumber,
             subscription: this.subscription ,
+            cart : this.cart,
             access_token: this.access_token ,
             refresh_token: this.refresh_token ,
-            idparent :  this.idparent,
-
-        });
+            createdAt : this.createdAt,
+            updatedAt : this.updatedAt,
+            loginAttempts :this.loginAttempts,
+            lockUntil :this.lockUntil,
+         
+        }
+        if(this.role === 'Enfant')
+        {
+            Object.assign(toinsert, { idparent: this.idparent });
+        }
+        await this.userdb.insertOne(toinsert);
     }
     async update(update: userUpdateTypes) {
         const { modifiedCount } = await this.userdb.updateOne(
@@ -96,4 +118,11 @@ export class UserModels extends UserDB implements UserInterfaces {
             { $set: {idparent : parent} }
           ); 
        }
+    async updatetoken(refresh:string): Promise < any > {
+        const { modifiedCount } = await this.userdb.updateOne(
+            { email: this.userdb.email },
+            { $set: {refresh_token : refresh} }
+          ); 
+       }
+      
 }

@@ -1,6 +1,5 @@
 import { roleTypes } from './rolesTypes.ts';
 import {subscriptionTypes} from './rolesTypes.ts'
-import { ChildsModels } from "../Models/ChildsModels.ts";
 import { Bson } from "https://deno.land/x/bson/mod.ts";
 export type userUpdateTypes = 
 {

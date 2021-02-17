@@ -6,12 +6,6 @@ import {TokenMidd} from './middlewares/auth.middleware.ts'
 import { SmtpClient } from "https://deno.land/x/smtp/mod.ts";
 import { config } from './config/config.ts';
 
-
-//const client = new SmtpClient();
-const {
-    EMAIL_USER,
-    EMAIL_PASSWORD
-} = config;
 const app = new Application();
 const client = new SmtpClient();
 //app.use(TokenMidd);
