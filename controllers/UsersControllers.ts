@@ -228,57 +228,6 @@ static facture: HandlerFunc = async(c: Context) => {
         }
       
 }
-// static allUserChild: HandlerFunc = async(c: Context) => {
-//     let _userdb: UserDB = new UserDB();
-//     let userdb = _userdb.userdb;
-//     const authorization: any = c.request.headers.get("authorization");
-//         const token = await getToken(authorization);
-//         const data = await getJwtPayload(token);
-//         const userParent: any = await userdb.findOne({ email: data.email });
-//         if(!authorization && await getJwtPayload(token)){
-//             return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
-//         }else if(userParent.subscription == 0){
-//             return c.json({status: 403, error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" });
-//         }else{
-//         //    const users : any = await userdb.find({idparent :userParent._id});
-//            const users = await userdb.find({idparent :userParent._id}).toArray();
-//            console.log(users)
-//            return c.json({Error :false,users});
-        
-//         }
-      
-// }
-// Route 01  => Logout / ok - to verify 
-// static logout: HandlerFunc = async(c: Context) => {
-
-//     const authorization: any = c.request.headers.get("authorization");
-//     const token = await getToken(authorization);
-
-//     try{
-//         await c.state.session.set(token, undefined);
-//         c.response.status = 200;
-//         c.response.redirect(REDIRECT_BACK, "/login");
-//         return { error: false, message: "L'utilisateur a été déconnecté avec succès"};
-//     }
-//     catch (err) {
-//         c.response.status = 401;
-//         return { error: true, message: "Votre token n\'est pas correct" };
-//     }
-// }
-
-  // Route 6 => index
-  static index: HandlerFunc = async(c: any) => {
-    try{
-        const message = html`<h1> Bienvenue </h1>`;
-        return c.json({ message });
-    }
-    catch (err) {
-        c.response.status = 404;
-        return c.json({ status : 200,error: true, message: "404" });
-        // c.response.redirect(REDIRECT_BACK, "/404.html");
-    }
-
-}
 // Route 9 => Listage d' enfants
 static allUserChild: HandlerFunc = async(c: any) => {
 

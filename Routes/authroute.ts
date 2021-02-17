@@ -7,7 +7,7 @@ import { CartControllers } from '../controllers/CartControllers.ts';
 import {SongControllers} from '../controllers/SongControllers.ts';
 
 const router = new Router();
-router.add(HttpMethod.Get, '/', UsersControllers.index);
+
 router.add(HttpMethod.Post, '/register', UsersControllers.register);
 router.add(HttpMethod.Post, '/login', UsersControllers.login);
 router.add(HttpMethod.Put, '/subscription',StripeControllers.subsstripe)
