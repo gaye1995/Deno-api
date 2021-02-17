@@ -308,8 +308,14 @@ static allUserChild: HandlerFunc = async(c: any) => {
           const users = await userdb.find({idparent :userParent._id}).toArray();
           users.map((maListe: any ) =>{
             Object.assign(maListe,{_id:maListe._id});
-             delete maListe.email
-             delete maListe.firstname
+                delete maListe.email
+                delete maListe.access_token
+                delete maListe.refresh_token
+                delete maListe.loginAttempts
+                delete maListe.lockUntil
+                delete maListe.idparent
+                delete maListe._id
+                delete maListe.password
           })
           if (users) return c.json({Error :false,users});
           else return [];
