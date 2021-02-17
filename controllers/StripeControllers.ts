@@ -16,7 +16,7 @@ export class StripeControllers {
    
 
             var checkheader : any = new Headers();
-            checkheader.append("Authorization", "Basic "+ STRIPE_SECRET_KEY);
+            checkheader.append("Authorization", "Bearer "+ STRIPE_SECRET_KEY);
             checkheader.append("Content-Type", "application/x-www-form-urlencoded");
 
             var link : any = new URLSearchParams();
@@ -35,11 +35,12 @@ export class StripeControllers {
 
             const methodes = await fetch("https://api.stripe.com/v1/payment_methods", requestOptions)
             const responseMethodes = await methodes.json()
+            //console.log(responseMethodes);
+
 
             var checkheader : any = new Headers();
-            checkheader.append("Authorization", "Basic "+ STRIPE_SECRET_KEY);
+            checkheader.append("Authorization", "Bearer "+ STRIPE_SECRET_KEY);
             checkheader.append("Content-Type", "application/x-www-form-urlencoded");
-
             var link : any = new URLSearchParams();
             link.append("payment_method", responseMethodes.id);
             link.append("email", "gayegayemboup@gmail.com");
@@ -53,10 +54,10 @@ export class StripeControllers {
 
             const client : any = await fetch("https://api.stripe.com/v1/customers", requestOptions)
             const respclient = await client.json()
-        
+            //console.log(respclient);
 
             var checkheader : any = new Headers();
-            checkheader.append("Authorization", "Basic "+ STRIPE_SECRET_KEY);
+            checkheader.append("Authorization", "Bearer "+ STRIPE_SECRET_KEY);
             checkheader.append("Content-Type", "application/x-www-form-urlencoded");
 
 
@@ -64,20 +65,21 @@ export class StripeControllers {
             link.append("items[0][price]", STRIP_ID_PRODUIT);
             link.append("client", respclient.id);
             link.append("default_payment_method", responseMethodes.id);
+            //console.log(link);
 
             var requestOptions : any = {
             method: 'POST',
-            headers: checkheader,
+            headers: STRIPE_SECRET_KEY,
+            client: respclient.id,
+            price: STRIP_ID_PRODUIT,
             body: link,
-            redirect: 'follow'
+            redirect: ''
             };
-
-            const subcription = await fetch("https://api.stripe.com/v1/subscriptions", requestOptions)
-            const subsstripe = await subcription.json()
-            const token=await getToken(STRIPE_SECRET_KEY)
-           console.log(await getJwtPayload(token));
-            c.response.status = 200;
-            return c.json({status:200, error: false, message: "Votre période d'essai viens d'être activé - 5min" , subsstripe  });
+           
+        console.log(requestOptions);
+            const subscription = await fetch("https://api.stripe.com/v1/subscriptions", requestOptions)
+            console.log(subscription);
+            return c.json({error: false, message: "Votre période d'essai viens d'être activé - 5min"  ,subscription},200);
         
 
     }
