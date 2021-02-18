@@ -258,7 +258,7 @@ static facture: HandlerFunc = async(c: Context) => {
         const token = await getToken(authorization);
         const data = await getJwtPayload(token);
         const user: any = await userdb.findOne({ email: data.email });
-        if(!authorization && await getJwtPayload(token)){
+        if(!authorization || await getJwtPayload(token)){
             return c.json({ error: true, message: "Votre token n'est pas correct" },401);
         }else if(user.subscription == 0){
             return c.json({error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" },403);
