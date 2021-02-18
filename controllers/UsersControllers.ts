@@ -15,7 +15,62 @@ import {incLoginAttempts} from '../utils/maxlock.ts';
 import { html } from "https://deno.land/x/html/mod.ts";
 export class UsersControllers {
 
-    static register: HandlerFunc = async(c: Context) => {
+// Route d'authentification
+static login: HandlerFunc = async(c: Context) => {
+
+        let _userdb: UserDB = new UserDB();
+        let userdb = _userdb.userdb;
+        let data : any = await c.body;
+        try {
+            const user: any = await userdb.findOne({ email: data.email })
+            if(data.email == '' || data.password == ''){
+                return c.json({ error: true, message: "Email/password manquants" },400);
+            }else if(!user || !(compareSync(data.password, user.password))){
+                return c.json({error: true, message: "Email/password incorrect" },400);
+            }
+            //test nombre de tentatives
+            else if(await incLoginAttempts(user, user.loginAttempts) > 5 )
+            {
+                await userdb.updateOne(
+                    { email: user.email },
+                    {$set: {loginAttempts: 0}}); 
+            
+                return c.json({error: true, message: "Trop de tentative sur l'email xxxxx (5 max) - Veuillez patienter (2min)"  },429);
+            }
+            else {
+                const updateToken = await userdb.updateOne(
+                    { email: user.email },
+                    {$set: {access_token: await jwt.getAuthToken(user)}});
+                const updateRToken = await userdb.updateOne(
+                    { email: user.email },
+                    {$set: {refresh_token: await jwt.getRefreshToken(user)}});
+                if(!updateRToken && !updateToken){
+                    return c.json({error: true, message: "token n'a pas été mise à jour dans la BBD", user },201);
+                }
+                console.log("utilisateur" + user)
+               let  newUser = {
+                "role": user.role,
+                "firstname": user.firstname,
+                "lastname": user.lastname,
+                "email": user.email,
+                "sexe": user.sexe,
+                "dateNaissance" :user.dateNaissance,
+                "subscription":user.subscription,
+                "createdAt":user.createdAt,
+                "updatedAt": user.updatedAt
+
+               }
+
+                if(user) return c.json({error: false, message: "L'utilisateur a été authentifié succès", user: newUser },200);
+
+            }
+        }catch (err){
+            c.response.status = 401;
+            return { error: true, message: err.message };
+        }
+}
+// Route register - to verify
+static register: HandlerFunc = async(c: Context) => {
 
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
@@ -23,11 +78,10 @@ export class UsersControllers {
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.sexe=="" || data.dateNaissance==""){
-                c.response.status = 400;
-                return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
+                return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" },400);
             }else if(EmailException.checkEmail(data.email) || !PasswordException.isValidPassword(data.password))
             {
-                return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" },409);
+                return c.json({ error: true, message: "Une ou plusieurs données sont erronées" },409);
             }
             else if(user)
             {
@@ -51,47 +105,9 @@ export class UsersControllers {
         }catch (err) {
             return c.json({ error: true, message: err.message },401);
         }
-    }
-
-    static login: HandlerFunc = async(c: Context) => {
-
-            let _userdb: UserDB = new UserDB();
-            let userdb = _userdb.userdb;
-            let data : any = await c.body;
-            try {
-                const user: any = await userdb.findOne({ email: data.email })
-                if(data.email == '' || data.password == ''){
-                    return c.json({ error: true, message: "Email/password manquants" },400);
-                }else if(!user || !(compareSync(data.password, user.password))){
-                    return c.json({error: true, message: "password incorrect" },400);
-                }
-                //test nombre de tentatives
-                else if(await incLoginAttempts(user, user.loginAttempts) > 5 )
-                {
-                    await userdb.updateOne(
-                        { email: user.email },
-                        {$set: {loginAttempts: 0}}); 
-                
-                    return c.json({error: true, message: "Trop de tentative sur l'email xxxxx (5 max) - Veuillez patienter (2min)"  },429);
-                }
-                else {
-                    const updateToken = await userdb.updateOne(
-                        { email: user.email },
-                        {$set: {access_token: await jwt.getAuthToken(user)}});
-                    const updateRToken = await userdb.updateOne(
-                        { email: user.email },
-                        {$set: {refresh_token: await jwt.getRefreshToken(user)}});
-                    if(!updateRToken && !updateToken){
-                        return c.json({error: true, message: "token n'a pas été mise à jour dans la BBD", user },201);
-                    }
-                    return c.json({error: false, message: "L'utilisateur a été authentifié succès", user },200);
-                }
-            }catch (err){
-                c.response.status = 401;
-                return { error: true, message: err.message };
-            }
-    }
-    static userchild: HandlerFunc = async(c: Context) => {
+}
+//Ajout d'un nouvel utilisateur enfant
+static userchild: HandlerFunc = async(c: Context) => {
         let _userdb: UserDB = new UserDB();
         let userdb = _userdb.userdb;
         try {
@@ -167,7 +183,7 @@ static deleteuserchild: HandlerFunc = async(c: Context) => {
         }
       
 } 
-//delete child en utilisant son propre token
+//delete child en utilisant son propre token - to verify -  success 200
 static subscriber: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
@@ -177,15 +193,16 @@ static subscriber: HandlerFunc = async(c: Context) => {
         const user: any = await userdb.findOne({ email: data.email });
         //const dataenfant = await userdb.findOne({_id: user.})
         if(!authorization && await getJwtPayload(token)){
-            return c.json({ status : 401,error: true, message: "Votre token n'est pas correct" });
+            return c.json({error: true, message: "Votre token n'est pas correct" },401);
         } else
         {
             await userdb.updateOne(
                 { email: user.email },
                 {$set: {subscription: 1}}); 
-            return c.json({ status: 200,error: true, message: "Votre abonnement a bien été mise à jour" }, user);
+            return c.json({error: false, message: "Votre abonnement a bien été mise à jour", user: user }, 200);
         }
 } 
+// suppression d'un utilisateur 
 static deleteuser: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
@@ -209,6 +226,7 @@ static deleteuser: HandlerFunc = async(c: Context) => {
     }
     
 }
+//deconnexion
 static offuser: HandlerFunc = async(c: Context) => {
     let _userdb: UserDB = new UserDB();
     let userdb = _userdb.userdb;
@@ -245,11 +263,11 @@ static facture: HandlerFunc = async(c: Context) => {
         }else if(user.subscription == 0){
             return c.json({error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" },403);
         }else{
-            return c.json({ status : 200,error: false, bills:[] } );
+            return c.json({error: false, bills:[] },200 );
         }
       
 }
-// Route 9 => Listage d' enfants
+// Listage d' enfants
 static allUserChild: HandlerFunc = async(c: any) => {
 
     let _userdb: UserDB = new UserDB();
@@ -262,16 +280,13 @@ static allUserChild: HandlerFunc = async(c: any) => {
         const data : any = await c.body;
         const user: any = await userdb.findOne({ email: data.email })
         if(data.email=="" || data.password=="" ){
-            c.response.status = 400;
-            return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" })
+            return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" },400)
         }
         else if(user.role !== "Parent"){
-            c.response.status = 403;
-            return c.json({ error: true, message: "Votre droits d'accès ne permettent pas d'accéder à la ressource"});
+            return c.json({ error: true, message: "Votre droits d'accès ne permettent pas d'accéder à la ressource"},403);
         }
         else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
-            c.response.status = 409;
-            return c.json({ error: true, message: "Une ou plusieurs données sont erronées" });
+            return c.json({ error: true, message: "Une ou plusieurs données sont erronées" },409);
         }
         else{
           //recupération de la liste des enfants par parent
@@ -297,7 +312,7 @@ static allUserChild: HandlerFunc = async(c: any) => {
     }
 
 }
-// Modify user 
+// Modification de l'utilisateur
 static updateUser: HandlerFunc = async(c: any) => {
   
     let _userdb: UserDB = new UserDB();
@@ -309,20 +324,14 @@ static updateUser: HandlerFunc = async(c: any) => {
         const user: any = await userdb.findOne({ email: data.email })
         console.log(data.email);
          if(!token){
-            c.response.status = 401;
-            return c.json({Error: true, message: "Votre token n'est pas correct"});
+            return c.json({Error: true, message: "Votre token n'est pas correct"},401);
          }
         else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
-                return c.json({status:409, error: true, message: "Une ou plusieurs données sont erronées" });
+                return c.json({error: true, message: "Une ou plusieurs données sont erronées" },409);
         }
         else if(!user || !(compareSync(data.password, user.password))){
-            return c.json({status:400, error: true, message: "Email/password incorrect" });
+            return c.json({error: true, message: "Email/password incorrect" },400);
         }
-        // else if(user)
-        // {
-        //     c.response.status = 409;
-        //     return c.json({ error: true, message: "Un compte utilisant cette adresse mail est déjà enregistré" });
-        // }
         else{
             console.log(user.email);
             let update = await userdb.updateOne({ email: user.email }, { $set: { firstname: data.firstname,lastname: data.lastname}} );
@@ -333,7 +342,6 @@ static updateUser: HandlerFunc = async(c: any) => {
            
         }
     }catch (err) {
-        c.response.status = 401;
         return c.json({ error: true, message: err.message });
     }
 }
