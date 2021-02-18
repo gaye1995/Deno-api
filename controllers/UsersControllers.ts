@@ -78,8 +78,8 @@ static register: HandlerFunc = async(c: Context) => {
             const data : any = await c.body;
             const user: any = await userdb.findOne({ email: data.email })
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.sexe=="" || data.dateNaissance==""){
-                return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" },400);
-            }else if(EmailException.checkEmail(data.email) || !PasswordException.isValidPassword(data.password))
+                return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" }, 400);
+            }else if(EmailException.checkEmail(data.email) || PasswordException.isValidPassword(data.password))
             {
                 return c.json({ error: true, message: "Une ou plusieurs données sont erronées" },409);
             }
@@ -340,7 +340,7 @@ static updateUser: HandlerFunc = async(c: any) => {
          if(!token){
             return c.json({Error: true, message: "Votre token n'est pas correct"},401);
          }
-        else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
+        else if(PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email)){
                 return c.json({error: true, message: "Une ou plusieurs données sont erronées" },409);
         }
         else if(!user || !(compareSync(data.password, user.password))){
