@@ -25,7 +25,7 @@ export class UsersControllers {
             if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.sexe=="" || data.dateNaissance==""){
                 c.response.status = 400;
                 return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" });
-            }else if(EmailException.checkEmail(data.email) || !PasswordException.isValidPassword(data.password))
+            }else if(EmailException.checkEmail(data.email) || PasswordException.isValidPassword(data.password))
             {
                 return c.json({ error: true, message: "Une ou plusieurs données obligatoire sont manquantes" },409);
             }
