@@ -54,7 +54,7 @@ static login: HandlerFunc = async(c: Context) => {
                 "lastname": user.lastname,
                 "email": user.email,
                 "sexe": user.sexe,
-                "dateNaissance" :user.dateNaissance,
+                "dateNaiss" :user.dateNaiss,
                 "subscription":user.subscription,
                 "createdAt":user.createdAt,
                 "updatedAt": user.updatedAt
@@ -100,7 +100,21 @@ static register: HandlerFunc = async(c: Context) => {
                     );
                 await User.insert();
                 await mailRegister(User.email);
-                return c.json({ error: false, message: "L'utilisateur a bien été créé avec succès",User},201);
+                // return c.json({ error: false, message: "L'utilisateur a bien été créé avec succès",User},201);
+                 let  newUser = {
+     
+                    "firstname": User.firstname,
+                    "lastname": User.lastname,
+                    "email": User.email,
+                    "sexe": User.sexe,
+                    "role": User.role,
+                    "dateNaiss": User.dateNaissance,
+                    "createdAt": User.createdAt,
+                    "updatedAt": User.updatedAt,
+                    "subscription": User.subscription
+    
+                   }
+                    if(User) return c.json({error: false, message: "L'utilisateur a bien été créé avec succès", user: newUser },201);
             }
         }catch (err) {
             return c.json({ error: true, message: err.message },401);
