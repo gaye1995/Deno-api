@@ -12,7 +12,7 @@ import {getToken} from '../middlewares/jwt-middleware.ts'
 import { getJwtPayload } from "../middlewares/jwt-middleware.ts";
 import {mailRegister} from '../helpers/mails.ts';
 import {incLoginAttempts} from '../utils/maxlock.ts';
-import { html } from "https://deno.land/x/html/mod.ts";
+import { sexeTypes } from "../types/rolesTypes.ts";
 export class UsersControllers {
 
 // Route d'authentification
@@ -33,9 +33,9 @@ static login: HandlerFunc = async(c: Context) => {
             {
                 await userdb.updateOne(
                     { email: user.email },
-                    {$set: {loginAttempts: 0}}); 
+                    {$set: {loginAttempts: 0}});
             
-                return c.json({error: true, message: "Trop de tentative sur l'email xxxxx (5 max) - Veuillez patienter (2min)"  },429);
+                return c.json({error: true, message: "Trop de tentative sur l'email "+ user.email +"(5 max) - Veuillez patienter (2min)"  },429);
             }
             else {
                 const updateToken = await userdb.updateOne(
@@ -54,10 +54,11 @@ static login: HandlerFunc = async(c: Context) => {
                 "lastname": user.lastname,
                 "email": user.email,
                 "sexe": user.sexe,
-                "dateNaiss" :user.dateNaiss,
+                "dateNaiss" :user.dateNaissance,
                 "subscription":user.subscription,
                 "createdAt":user.createdAt,
-                "updatedAt": user.updatedAt
+                "updatedAt": user.updatedAt,
+                "acess": user.access_token
 
                }
 
@@ -94,7 +95,7 @@ static register: HandlerFunc = async(c: Context) => {
                     data.firstname,
                     data.lastname,
                     data.email,
-                    data.sexe,
+                    data.sexe.sexeTypes,
                     pass,
                     data.dateNaissance,
                     );
@@ -131,15 +132,14 @@ static userchild: HandlerFunc = async(c: Context) => {
             const userParent: any = await userdb.findOne({ email: dataparent.email });
             const data : any = await c.body;
             const user1: any = await userdb.findOne({ email: data.email });
-            if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaiss=="" || data.sexe==""){
+            if(data.firstname=="" || data.lastname=="" || data.email=="" || data.password=="" || data.dateNaissance=="" || data.sexe==""){
                 return c.json({error: true, message: "Une ou plusieurs données obligatoire sont manquantes" },400)
             }
             else if(!authorization || !token){
                 return c.json({Error: true, message: "Votre token n'est pas correct"});
             } else if(userParent.subscription == 0){
                 return c.json({ error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" },403);
-            }else if(!PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email))
-              
+            }else if(PasswordException.isValidPassword(data.password) || EmailException.checkEmail(data.email))
             {
                 return c.json({error: true, message: "Une ou plusieurs données sont erronées" },409);
             }else if(user1){
@@ -166,8 +166,22 @@ static userchild: HandlerFunc = async(c: Context) => {
                     await userdb.updateOne({
                         email:userParent.email
                     },{$set: {role: 'Parent'}})
-                return c.json({error: false, message: "Votre enfant a bien été créé avec succès",User},200);
-
+                    await userdb.updateOne({
+                        email:User.email
+                    },{$set: {subscription: 1}})
+                    let  newUser = {
+     
+                        "firstname": User.firstname,
+                        "lastname": User.lastname,
+                        "sexe": User.sexe,
+                        "role": User.role,
+                        "dateNaissance": User.dateNaissance,
+                        "createdAt": User.createdAt,
+                        "updatedAt": User.updatedAt,
+                        "subscription": userParent.subscription
+        
+                       }
+                        if(User) return c.json({error: false, message: "Votre enfant a bien été créé avec succès", user: newUser },200);
             }    
         }catch (err){
             return c.json({error: true, message: "Votre token n'est pas correct"},401);
@@ -183,13 +197,14 @@ static deleteuserchild: HandlerFunc = async(c: Context) => {
         const user: any = await userdb.findOne({ email: data.email });
         if(!authorization && await getJwtPayload(token)){
             return c.json({ error: true, message: "Votre token n'est pas correct" },401);
-        }else if(user.subscription == 1){
+        }else if(user.subscription == 0){
             return c.json({ error: true, message: "Vos droits d'accès ne permettent pas d'accéder à la ressource" },403);
         }else if(!user.idparent && !user.id){
 
             return c.json({ error: true, message: "Vous ne pouvez pas supprimer cet enfant" },403);
         }
-        const deleteCount = await userdb.deleteOne({ _id: user._id });
+
+        const deleteCount = await userdb.deleteOne({ idparent :user._id});
         if(!deleteCount){
             return c.json({ error: true, message: "Votre compte n'a pas été supprimés avec succès" },403);
         }else{
@@ -322,7 +337,7 @@ static allUserChild: HandlerFunc = async(c: any) => {
         }
     }
     catch (err) {
-        return c.json({ error: true, message: err.message });
+        return c.json({Error: true, message: "Votre token n'est pas correct"},401);
     }
 
 }
@@ -349,6 +364,9 @@ static updateUser: HandlerFunc = async(c: any) => {
         else{
             console.log(user.email);
             let update = await userdb.updateOne({ email: user.email }, { $set: { firstname: data.firstname,lastname: data.lastname}} );
+            if(!update){
+                return c.json({ error: true, "message": "Une ou plusieurs données sont erronées" },409);
+            }
              // let update = await userdb.updateOne({ email: user.email },{ ...data, email: user.email })
             console.log(data.lastname);
             console.log(data.firstname);
@@ -356,7 +374,7 @@ static updateUser: HandlerFunc = async(c: any) => {
            
         }
     }catch (err) {
-        return c.json({ error: true, message: err.message });
+        return c.json({Error: true, message: "Votre token n'est pas correct"},401);
     }
 }
 
