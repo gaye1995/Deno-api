@@ -108,7 +108,7 @@ static register: HandlerFunc = async(c: Context) => {
                     "email": User.email,
                     "sexe": User.sexe,
                     "role": User.role,
-                    "dateNaiss": User.dateNaissance,
+                    "dateNaissance": User.dateNaissance,
                     "createdAt": User.createdAt,
                     "updatedAt": User.updatedAt,
                     "subscription": User.subscription
